@@ -2,6 +2,12 @@
 
 依据《电磁学复习提纲：大纲、公式与解题思路》制作的交互式公式索引。课程范围为静电场、导体、电介质、电容、电场能量、传导电流与电动势、稳恒磁场、磁场力和带电粒子运动。
 
+## 在线网站
+
+[打开电磁学公式复习站](https://williamwilson-1.github.io/electromagnetism-formula-review/)
+
+GitHub Pages 使用 `gh-pages` 分支的根目录发布，发布内容与 `dist/` 一致。`.nojekyll` 使 GitHub 直接提供静态 HTML、CSS、JavaScript 与本地公式字体。所有资源采用相对路径，兼容项目子路径。
+
 ## 使用
 
 - 按 11 个章节浏览；搜索公式名称、变量、条件和解题提示。
