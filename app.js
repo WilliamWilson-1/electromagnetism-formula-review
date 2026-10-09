@@ -16,7 +16,7 @@
   function render() {
     nav();
     const chapter=chapters.find(c=>c.id===state.chapter);
-    $('page-title').textContent=chapter?chapter.title:'公式，在这里串起来。';
+    $('page-title').textContent=chapter?chapter.title:'电磁学公式交互式复习';
     $('page-description').textContent=chapter?chapter.description:'按章节找公式，点击查看变量、适用条件与解题提示。';
     $('total-number').textContent=formulas.length;
     const selected=matching();
