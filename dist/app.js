@@ -1,14 +1,15 @@
 (() => {
   'use strict';
-  const { chapters, types, formulas } = window.REVIEW_DATA;
+  const { chapters, types, formulas, groups, learning } = window.REVIEW_DATA;
   const $ = id => document.getElementById(id);
   const state = { chapter:'all', query:'', type:'全部类型', mode:'formulas' };
+  const expandedGroups=new Map();
   const modes = [['formulas','formula'],['guide','guide'],['summary','summary']];
   const escape = text => String(text).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
   const math = (latex, displayMode=true) => window.katex ? katex.renderToString(latex,{displayMode,throwOnError:false,strict:'ignore',output:'htmlAndMathml'}) : escape(latex);
   const prose = text => text.split(/(\$[^$]+\$)/g).map(part => part.startsWith('$')&&part.endsWith('$')?math(part.slice(1,-1),false):escape(part)).join('');
   const normalize = text => text.toLocaleLowerCase().replace(/\s+/g,'');
-  const matching = () => formulas.filter(f => (state.chapter==='all'||f.chapter===state.chapter)&&(state.type==='全部类型'||f.type===state.type)&&(!state.query||normalize([f.title,f.latex,f.condition,f.hint,f.keywords,chapters.find(c=>c.id===f.chapter).title,...f.variables.flat()].join(' ')).includes(normalize(state.query))));
+  const matching = () => formulas.filter(f => (state.chapter==='all'||f.chapter===state.chapter)&&(state.type==='全部类型'||f.type===state.type)&&(!state.query||normalize([f.id,f.title,f.latex,f.condition,f.hint,f.keywords,chapters.find(c=>c.id===f.chapter).title,groups.find(g=>g.ids.includes(f.id)).title,learning[f.id].kind,...f.variables.flat(),...learning[f.id].steps.flat(),...learning[f.id].solves.flat()].join(' ')).includes(normalize(state.query))));
   function nav() {
     $('chapter-nav').innerHTML = `<a class="nav-link${state.chapter==='all'?' active':''}" href="#all" ${state.chapter==='all'?'aria-current="page"':''}><span class="nav-number">∑</span><span>全部公式</span><span class="nav-count">${formulas.length}</span></a><div class="nav-divider"></div>` + chapters.map((c,i) => `${i===0?'<div class="nav-group">静电学 · 第10章</div>':i===7?'<div class="nav-divider"></div><div class="nav-group">稳恒磁场 · 第11章</div>':''}<a class="nav-link${c.id===state.chapter?' active':''}" href="#${c.id}" ${c.id===state.chapter?'aria-current="page"':''}><span class="nav-number">${c.number}</span><span>${c.title}</span><span class="nav-count">${formulas.filter(f=>f.chapter===c.id).length}</span></a>`).join('');
     $('chapter-select').innerHTML = `<option value="all">全部章节</option>` + chapters.map(c=>`<option value="${c.id}">${c.number} ${c.title}</option>`).join('');
@@ -20,12 +21,24 @@
     updateHeading();
     $('total-number').textContent=formulas.length;
     const selected=matching();
-    $('result-count').textContent = `显示 ${selected.length} 条公式 · ${chapter?chapter.section:'全部章节'}`;
+    const selectedGroups=groups.filter(g=>selected.some(f=>g.ids.includes(f.id)));
+    const filtered=Boolean(state.query)||state.type!=='全部类型';
+    $('result-count').textContent = `匹配 ${selected.length} 条公式 · ${selectedGroups.length} 个分类 · ${chapter?chapter.section:'全部章节'}`;
     $('reset').hidden=state.chapter==='all'&&!state.query&&state.type==='全部类型';
     $('empty-state').hidden=selected.length!==0;
+    $('group-toolbar').hidden=selected.length===0;
+    const card=f=>{
+      const c=chapters.find(c=>c.id===f.chapter), lesson=learning[f.id];
+      const badge=lesson.kind.includes('基本定律')?'定律说明':lesson.kind.includes('定义')?'定义说明':`${lesson.steps.length} 步展开`;
+      return `<button class="formula-card" data-formula="${f.id}" aria-label="查看${escape(f.title)}：推导、物理量求法、变量与条件"><div class="card-top"><span class="card-index">${c.number}.${String(formulas.filter(x=>x.chapter===c.id).indexOf(f)+1).padStart(2,'0')}</span><span class="card-type">${f.type}</span></div><h3>${escape(f.title)}</h3><div class="card-formula">${math(f.latex)}</div><p class="card-scope">${escape(f.condition)}</p><div class="card-solves"><span>可求</span>${lesson.solves.map(s=>escape(s[0])).join(' · ')}</div><div class="card-bottom"><span class="card-open">${badge} · 求量 · 变量</span><span class="card-mark" aria-hidden="true">↗</span></div></button>`;
+    };
     $('formula-list').innerHTML=chapters.map(c=>{
       const rows=selected.filter(f=>f.chapter===c.id);if(!rows.length)return '';
-      return `<section class="chapter-section" aria-labelledby="heading-${c.id}"><div class="section-heading"><span class="section-number">${c.number}</span><h2 id="heading-${c.id}">${c.title}</h2><span class="section-ref">${c.section} · ${rows.length} 条</span></div><div class="formula-grid">${rows.map(f=>`<button class="formula-card" data-formula="${f.id}" aria-label="查看${escape(f.title)}：变量、条件与解题提示"><div class="card-top"><span class="card-index">${c.number}.${String(formulas.filter(x=>x.chapter===c.id).indexOf(f)+1).padStart(2,'0')}</span><span class="card-type">${f.type}</span></div><h3>${escape(f.title)}</h3><div class="card-formula">${math(f.latex)}</div><div class="card-bottom"><span class="card-open">变量 · 条件 · 解题提示</span><span class="card-mark" aria-hidden="true">+</span></div></button>`).join('')}</div></section>`;
+      return `<section class="chapter-section" aria-labelledby="heading-${c.id}"><div class="section-heading"><span class="section-number">${c.number}</span><h2 id="heading-${c.id}">${c.title}</h2><span class="section-ref">${c.section} · ${rows.length} 条</span></div><div class="formula-groups">${selectedGroups.filter(g=>g.chapter===c.id).map(g=>{
+        const groupRows=g.ids.map(id=>rows.find(f=>f.id===id)).filter(Boolean);
+        const open=filtered|| (expandedGroups.has(g.id)?expandedGroups.get(g.id):g.id===selectedGroups[0].id);
+        return `<details class="formula-group" data-group="${g.id}" ${open?'open':''}><summary><span class="group-glyph" aria-hidden="true">${c.number}</span><span class="group-heading"><strong>${g.title}</strong><small>${g.description}</small></span><span class="group-count">${groupRows.length} 条</span><span class="expand-mark" aria-hidden="true">+</span></summary><div class="group-content"><div class="formula-grid">${groupRows.map(card).join('')}</div></div></details>`;
+      }).join('')}</div></section>`;
     }).join('');
     if(state.mode==='formulas')document.querySelectorAll('.card-formula').forEach(fitFormula);
     syncGlass();
@@ -44,13 +57,20 @@
     $('detail-chapter').textContent=`${c.number} / ${c.title}`;$('detail-type').textContent=f.type;$('detail-title').textContent=f.title;
     $('detail-formula').innerHTML=math(f.latex);
     $('detail-variables').innerHTML=f.variables.map(([symbol,meaning])=>`<div class="variable-row"><dt>${math(symbol,false)}</dt><dd>${prose(meaning)}</dd></div>`).join('');
-    $('detail-condition').innerHTML=prose(f.condition);$('detail-hint').innerHTML=prose(f.hint);$('detail-source').textContent=`依据复习提纲 · ${c.source} ${c.section}`;
-    $('formula-dialog').showModal();$('formula-dialog').scrollTop=0;document.body.style.overflow='hidden';
+    $('detail-condition').innerHTML=prose(f.condition);$('detail-hint').innerHTML=prose(f.hint);$('detail-source').textContent=`原公式依据复习提纲 · ${c.source} ${c.section}。推导与反解由现有课程关系整理。`;
+    const lesson=learning[f.id];
+    $('detail-learning-kind').textContent=lesson.kind;
+    $('detail-derivation').innerHTML=lesson.steps.map(([text,latex],i)=>`<li><span class="derivation-number">0${i+1}</span><div><p>${prose(text)}</p>${latex?`<div class="derivation-equation math-scroll">${math(latex)}</div>`:''}</div></li>`).join('');
+    $('detail-solves').innerHTML=lesson.solves.map(([quantity,latex,note])=>`<article class="solve-card"><h4>${escape(quantity)}</h4><div class="solve-equation math-scroll">${math(latex)}</div><p>${prose(note)}</p></article>`).join('');
+    $('detail-related').innerHTML=lesson.related.map(id=>`<button class="formula-reference" data-formula="${id}">${escape(formulas.find(f=>f.id===id).title)} ↗</button>`).join('');
+    $('detail-derivation-panel').open=true;$('detail-solves-panel').open=true;$('detail-variables-panel').open=false;
+    if(!$('formula-dialog').open)$('formula-dialog').showModal();$('formula-dialog').scrollTop=0;document.body.style.overflow='hidden';
+    syncGlass();
   }
   function reset(){state.chapter='all';state.query='';state.type='全部类型';$('search').value='';$('type-filter').value='全部类型';history.replaceState(null,'','#all');render();}
   function updateHeading(){
     const chapter=chapters.find(c=>c.id===state.chapter);
-    const headings={formulas:[chapter?chapter.title:'电磁学公式交互式复习',chapter?chapter.description:'按章节找公式，点击查看变量、适用条件与解题提示。'],guide:['做题思路','从对称性、边界条件与守恒关系开始，先选方法，再代公式。'],summary:['总结与易错辨析','同一个物理量的不同求法，串联现有公式与适用条件。']};
+    const headings={formulas:[chapter?chapter.title:'电磁学公式交互式复习',chapter?chapter.description:'按章节和模型找公式，点击查看推导、物理量求法与适用条件。'],guide:['做题思路','从对称性、边界条件与守恒关系开始，先选方法，再代公式。'],summary:['总结与易错辨析','同一个物理量的不同求法，串联现有公式与适用条件。']};
     [$('page-title').textContent,$('page-description').textContent]=headings[state.mode];
   }
   function setMode(mode,updateHash=false){
@@ -68,6 +88,10 @@
   window.addEventListener('hashchange',route);
   $('chapter-nav').addEventListener('click',()=>setMode('formulas'));
   document.querySelector('main').addEventListener('click',event=>{const card=event.target.closest('[data-formula]');if(card)openFormula(card.dataset.formula);});
+  $('formula-list').addEventListener('toggle',event=>{const group=event.target;if(!group.matches('details.formula-group')||!group.isConnected)return;if(!state.query&&state.type==='全部类型')expandedGroups.set(group.dataset.group,group.open);if(group.open&&state.mode==='formulas')requestAnimationFrame(()=>group.querySelectorAll('.card-formula').forEach(fitFormula));},true);
+  function setAllGroups(open){document.querySelectorAll('.formula-group').forEach(group=>{group.open=open;expandedGroups.set(group.dataset.group,open);});if(open)requestAnimationFrame(()=>document.querySelectorAll('.card-formula').forEach(fitFormula));}
+  $('expand-groups').addEventListener('click',()=>setAllGroups(true));$('collapse-groups').addEventListener('click',()=>setAllGroups(false));
+  $('detail-related').addEventListener('click',event=>{const button=event.target.closest('[data-formula]');if(button)openFormula(button.dataset.formula);});
   $('close-detail').addEventListener('click',()=>$('formula-dialog').close());
   $('formula-dialog').addEventListener('click',event=>{if(event.target===$('formula-dialog')){const rect=event.target.getBoundingClientRect();if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)event.target.close();}});
   $('formula-dialog').addEventListener('close',()=>{document.body.style.overflow='';});
@@ -94,7 +118,7 @@
   $('summary-view').addEventListener('click',event=>{const button=event.target.closest('[data-scroll]');if(!button)return;const target=$(button.dataset.scroll);if(target.tagName==='DETAILS')target.open=true;target.scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});if(target.tagName==='DETAILS')target.querySelector('summary').focus({preventScroll:true});else target.focus({preventScroll:true});});
 
   // Track only visible glass surfaces. Read all geometry before writing pointer styles.
-  const glassSelector='.formula-card,.mode-tabs button,.nav-link,.search-box,.filter-control,.mobile-chapter,.icon-button,.steps li,.template,.mistakes,.quantity-card,.method-card,.pitfall-card,.chain-card,.summary-intro,.summary-nav button,.quantity-nav button,.formula-reference,.final-checks article';
+  const glassSelector='.formula-card,.formula-group,.browse-button,.solve-card,.mode-tabs button,.nav-link,.search-box,.filter-control,.mobile-chapter,.icon-button,.steps li,.template,.mistakes,.quantity-card,.method-card,.pitfall-card,.chain-card,.summary-intro,.summary-nav button,.quantity-nav button,.formula-reference,.final-checks article';
   const tracked=new Set(), visible=new Set();
   const observer=typeof IntersectionObserver==='function'?new IntersectionObserver(entries=>{for(const entry of entries){if(entry.isIntersecting)visible.add(entry.target);else visible.delete(entry.target);}}):null;
   function syncGlass(){

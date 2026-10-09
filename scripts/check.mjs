@@ -3,8 +3,8 @@ import vm from 'node:vm';
 import path from 'node:path';
 import katex from 'katex';
 const sandbox={window:{}};
-for(const file of ['dist/data.js','dist/content.js','dist/summary.js'])vm.runInNewContext(fs.readFileSync(file,'utf8'),sandbox,{filename:file});
-const {formulas,chapters,guide,summary}=sandbox.window.REVIEW_DATA;
+for(const file of ['dist/data.js','dist/content.js','dist/summary.js','dist/learning.js'])vm.runInNewContext(fs.readFileSync(file,'utf8'),sandbox,{filename:file});
+const {formulas,chapters,guide,summary,groups,learning}=sandbox.window.REVIEW_DATA;
 const seen=new Set();
 for(const f of formulas){
   if(seen.has(f.id))throw new Error(`Duplicate id: ${f.id}`);seen.add(f.id);
@@ -25,8 +25,23 @@ function verifySummary(value){
 }
 verifySummary(summary);
 for(const id of seen)if(!covered.has(id))throw new Error(`Formula missing from summary: ${id}`);
+const grouped=new Set(),groupIds=new Set();
+for(const group of groups){
+  if(groupIds.has(group.id)||!group.title||!group.description||!group.ids.length)throw new Error(`Invalid group: ${group.id}`);
+  groupIds.add(group.id);
+  for(const id of group.ids){if(grouped.has(id)||!seen.has(id)||formulas.find(f=>f.id===id).chapter!==group.chapter)throw new Error(`Invalid group membership: ${id}`);grouped.add(id);}
+}
+for(const id of seen){
+  if(!grouped.has(id))throw new Error(`Ungrouped formula: ${id}`);
+  const lesson=learning[id];
+  if(!lesson||!lesson.kind||lesson.steps.length<2||!lesson.solves.length||!lesson.related.length)throw new Error(`Incomplete learning detail: ${id}`);
+  for(const [text,latex] of lesson.steps){if(!text)throw new Error(`Empty step: ${id}`);if(latex)katex.renderToString(latex,{displayMode:true,throwOnError:true,strict:'ignore'});}
+  for(const [quantity,latex,note] of lesson.solves){if(!quantity||!latex||!note)throw new Error(`Incomplete solve: ${id}`);katex.renderToString(latex,{displayMode:true,throwOnError:true,strict:'ignore'});}
+  for(const related of lesson.related)if(!seen.has(related)||related===id)throw new Error(`Invalid related formula: ${id} → ${related}`);
+}
+for(const id of Object.keys(learning))if(!seen.has(id))throw new Error(`Unknown learning formula: ${id}`);
 for(const c of chapters)if(!formulas.some(f=>f.chapter===c.id))throw new Error(`Empty chapter: ${c.id}`);
 const html=fs.readFileSync('dist/index.html','utf8');
-for(const match of html.matchAll(/(?:src|href)="([^"#]+)"/g)){if(match[1].startsWith('data:'))continue;if(!fs.existsSync(path.join('dist',match[1])))throw new Error(`Missing asset: ${match[1]}`);}
+for(const match of html.matchAll(/(?:src|href)="([^"#]+)"/g)){if(match[1].startsWith('data:'))continue;if(!fs.existsSync(path.join('dist',match[1].split('?')[0])))throw new Error(`Missing asset: ${match[1]}`);}
 new vm.Script(fs.readFileSync('dist/app.js','utf8'),{filename:'app.js'});
-console.log(`PASS: ${formulas.length} formulas, ${chapters.length} chapters, ${summary.targets.length} quantity groups, ${summary.pitfalls.length} comparisons; all math, summary references and local assets verified.`);
+console.log(`PASS: ${formulas.length} formulas with derivation and solve details, ${groups.length} model groups, ${chapters.length} chapters; all math, references, group coverage and local assets verified.`);

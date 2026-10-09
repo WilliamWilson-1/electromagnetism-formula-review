@@ -13,7 +13,7 @@ function load(hash='',coarse=false,reduced=false){
   w.HTMLElement.prototype.scrollIntoView=function(){this.dataset.scrolled='true';};
   w.HTMLDialogElement.prototype.showModal=function(){this.setAttribute('open','');};
   w.HTMLDialogElement.prototype.close=function(){this.removeAttribute('open');this.dispatchEvent(new w.Event('close'));};
-  for(const file of ['data.js','content.js','summary.js','app.js'])w.eval(fs.readFileSync('dist/'+file,'utf8'));
+  for(const file of ['data.js','content.js','summary.js','learning.js','app.js'])w.eval(fs.readFileSync('dist/'+file,'utf8'));
   return dom;
 }
 const dom=load(),w=dom.window,d=w.document,$=id=>d.getElementById(id);
@@ -23,6 +23,31 @@ assert.equal(displayedCards().length,83,'All formulas load without a startup exc
 assert.equal(d.querySelectorAll('.quantity-card').length,12);
 assert.equal(d.querySelectorAll('.pitfall-card').length,16);
 assert.equal(d.querySelectorAll('.katex-error').length,0);
+assert.equal(d.querySelectorAll('.formula-group').length,34);
+assert.equal(d.querySelectorAll('.formula-group[open]').length,1,'Initial index is compact');
+$('collapse-groups').click();await settle();
+assert.equal(d.querySelectorAll('.formula-group[open]').length,0);
+$('expand-groups').click();await settle();
+assert.equal(d.querySelectorAll('.formula-group[open]').length,34);
+$('collapse-groups').click();await settle();
+d.querySelector('[data-group="capacitor-models"]').open=true;await settle();
+assert.equal(d.querySelectorAll('[data-group="capacitor-models"] .formula-card').length,3);
+assert.equal(d.querySelectorAll('[data-group="straight-wire-models"] .formula-card').length,3);
+assert.equal(d.querySelectorAll('[data-group="round-current-models"] .formula-card').length,3);
+
+// Each formula card has its own steps and usable inversions; related formulas update the panel.
+for(const card of displayedCards()){
+  card.click();
+  const lesson=w.REVIEW_DATA.learning[card.dataset.formula];
+  assert.equal($('detail-derivation').children.length,lesson.steps.length);
+  assert.equal($('detail-solves').children.length,lesson.solves.length);
+  assert.ok($('detail-learning-kind').textContent.length>0);
+  assert.equal(d.querySelectorAll('#formula-dialog .katex-error').length,0);
+  const related=$('detail-related').querySelector('button');
+  related.click();
+  assert.equal($('detail-title').textContent,w.REVIEW_DATA.formulas.find(f=>f.id===related.dataset.formula).title);
+  $('close-detail').click();
+}
 
 $('summary-tab').click();
 assert.equal(w.location.hash,'#summary');
@@ -55,14 +80,18 @@ $('summary-tab').dispatchEvent(new w.KeyboardEvent('keydown',{key:'Home',bubbles
 assert.equal($('formula-view').hidden,false);
 assert.equal(d.activeElement,$('formula-tab'));
 
-$('search').value='霍尔电压';$('search').dispatchEvent(new w.Event('input',{bubbles:true}));
+$('search').value='hall-voltage';$('search').dispatchEvent(new w.Event('input',{bubbles:true}));
 assert.equal(displayedCards().length,1);
 assert.equal(displayedCards()[0].dataset.formula,'hall-voltage');
+assert.equal(d.querySelectorAll('.formula-group[open]').length,1,'Filtered result is expanded even if previously collapsed');
 $('summary-tab').click();$('formula-tab').click();
-assert.equal($('search').value,'霍尔电压','Switching views preserves search');
+assert.equal($('search').value,'hall-voltage','Switching views preserves search');
 assert.equal(displayedCards().length,1);
 $('reset').click();
 assert.equal(displayedCards().length,83);
+await settle();
+assert.equal(d.querySelector('[data-group="capacitor-models"]').open,true,'Manual expansion persists after clearing search');
+assert.equal(d.querySelector('[data-group="straight-wire-models"]').open,false,'Other manually collapsed groups stay compact');
 w.location.hash='particles';await settle();
 assert.equal(displayedCards().length,12);
 assert.match($('page-title').textContent,/粒子/);
@@ -85,4 +114,4 @@ for(const [hash,coarse,reduced] of [['#summary',true,false],['#guide',false,true
   assert.equal(doc.body.classList.contains('pointer-active'),false,'Coarse pointer or reduced motion keeps static glass');
   direct.window.close();
 }
-console.log('PASS: startup, 3-view routing, keyboard tabs, search/filter/reset, all summary formula details, jump links, and pointer preferences (DOM simulation; no visual layout verification).');
+console.log('PASS: compact model groups, bulk expand/collapse, preserved group state, all 83 enriched formula details and related links, routing, keyboard tabs, search/filter/reset and pointer preferences (DOM simulation; no visual layout verification).');
