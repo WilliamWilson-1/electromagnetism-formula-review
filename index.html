@@ -12,9 +12,12 @@
   <script defer src="vendor/katex/katex.min.js"></script>
   <script defer src="data.js"></script>
   <script defer src="content.js"></script>
+  <script defer src="summary.js"></script>
   <script defer src="app.js"></script>
 </head>
 <body>
+  <div class="ambient-light" aria-hidden="true"></div>
+  <div class="cursor-aura" aria-hidden="true"></div>
   <a class="skip-link" href="#main">跳到公式内容</a>
   <header class="topbar">
     <a class="brand" href="#all" aria-label="电磁学公式复习站首页"><span class="brand-symbol" aria-hidden="true">Φ</span><span>电磁学公式复习站</span></a>
@@ -28,8 +31,8 @@
       <div class="sidebar-note"><strong>复习范围</strong><p>静电场 · 导体与介质<br>电容与能量 · 稳恒磁场</p><span>依据最近整理的三份课件提纲</span></div>
     </aside>
     <main id="main" tabindex="-1">
-      <div class="page-heading"><div><span class="eyebrow">ELECTROMAGNETISM</span><h1 id="page-title">电磁学公式交互式复习</h1><p id="page-description">按章节找公式，点击查看变量、适用条件与解题提示。</p></div><div class="formula-total"><strong id="total-number">5</strong><span>条课程公式</span></div></div>
-      <div class="mode-tabs" role="tablist" aria-label="复习视图"><button id="formula-tab" role="tab" aria-selected="true" aria-controls="formula-view">公式索引</button><button id="guide-tab" role="tab" aria-selected="false" aria-controls="guide-view" tabindex="-1">做题思路</button></div>
+      <div class="page-heading"><div><span class="eyebrow">ELECTROMAGNETISM</span><h1 id="page-title">电磁学公式交互式复习</h1><p id="page-description">按章节找公式，点击查看变量、适用条件与解题提示。</p></div><div class="formula-total"><strong id="total-number">83</strong><span>条课程公式</span></div></div>
+      <div class="mode-tabs" role="tablist" aria-label="复习视图"><button id="formula-tab" role="tab" aria-selected="true" aria-controls="formula-view">公式索引</button><button id="guide-tab" role="tab" aria-selected="false" aria-controls="guide-view" tabindex="-1">做题思路</button><button id="summary-tab" role="tab" aria-selected="false" aria-controls="summary-view" tabindex="-1">总结辨析</button></div>
       <section id="formula-view" role="tabpanel" aria-labelledby="formula-tab">
         <div class="controls">
           <div class="search-box"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><label class="sr-only" for="search">检索公式、变量或条件</label><input id="search" type="search" placeholder="搜索公式、变量或条件…" autocomplete="off"><kbd aria-hidden="true">/</kbd></div>
@@ -41,6 +44,7 @@
         <div id="empty-state" class="empty-state" hidden><span class="empty-symbol" aria-hidden="true">∅</span><h2>没有找到匹配的公式</h2><p>试试“高斯”“电容”或“圆周运动”，也可以清除筛选。</p><button id="empty-reset" class="primary-button">查看全部公式</button></div>
       </section>
       <section id="guide-view" role="tabpanel" aria-labelledby="guide-tab" hidden></section>
+      <section id="summary-view" role="tabpanel" aria-labelledby="summary-tab" hidden></section>
       <footer>课程来源：第10章静电场 A · 第10章静电学 B · 第11章静磁场 A<br><span>内容依据现有复习提纲。公式中的近似条件与方向约定请结合题目检查。</span></footer>
     </main>
   </div>
