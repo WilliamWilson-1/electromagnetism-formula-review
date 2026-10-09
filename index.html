@@ -8,12 +8,13 @@
   <title>电磁学公式复习站</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2312834b'/%3E%3Ctext x='16' y='24' text-anchor='middle' font-family='serif' font-size='26' fill='white'%3E%CE%A6%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="vendor/katex/katex.min.css">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=learning-2">
   <script defer src="vendor/katex/katex.min.js"></script>
   <script defer src="data.js"></script>
   <script defer src="content.js"></script>
   <script defer src="summary.js"></script>
-  <script defer src="app.js"></script>
+  <script defer src="learning.js"></script>
+  <script defer src="app.js?v=learning-2"></script>
 </head>
 <body>
   <div class="ambient-light" aria-hidden="true"></div>
@@ -31,15 +32,16 @@
       <div class="sidebar-note"><strong>复习范围</strong><p>静电场 · 导体与介质<br>电容与能量 · 稳恒磁场</p><span>依据最近整理的三份课件提纲</span></div>
     </aside>
     <main id="main" tabindex="-1">
-      <div class="page-heading"><div><span class="eyebrow">ELECTROMAGNETISM</span><h1 id="page-title">电磁学公式交互式复习</h1><p id="page-description">按章节找公式，点击查看变量、适用条件与解题提示。</p></div><div class="formula-total"><strong id="total-number">83</strong><span>条课程公式</span></div></div>
+      <div class="page-heading"><div><span class="eyebrow">ELECTROMAGNETISM</span><h1 id="page-title">电磁学公式交互式复习</h1><p id="page-description">按章节和模型找公式，点击查看推导、物理量求法与适用条件。</p></div><div class="formula-total"><strong id="total-number">83</strong><span>条课程公式</span></div></div>
       <div class="mode-tabs" role="tablist" aria-label="复习视图"><button id="formula-tab" role="tab" aria-selected="true" aria-controls="formula-view">公式索引</button><button id="guide-tab" role="tab" aria-selected="false" aria-controls="guide-view" tabindex="-1">做题思路</button><button id="summary-tab" role="tab" aria-selected="false" aria-controls="summary-view" tabindex="-1">总结辨析</button></div>
       <section id="formula-view" role="tabpanel" aria-labelledby="formula-tab">
         <div class="controls">
-          <div class="search-box"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><label class="sr-only" for="search">检索公式、变量或条件</label><input id="search" type="search" placeholder="搜索公式、变量或条件…" autocomplete="off"><kbd aria-hidden="true">/</kbd></div>
+          <div class="search-box"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><label class="sr-only" for="search">检索公式、模型、物理量或推导内容</label><input id="search" type="search" placeholder="搜索公式、模型或求量方法…" autocomplete="off"><kbd aria-hidden="true">/</kbd></div>
           <div class="filter-control"><label for="type-filter">公式类型</label><select id="type-filter"></select></div>
           <div class="mobile-chapter"><label for="chapter-select">章节</label><select id="chapter-select"></select></div>
         </div>
         <div class="result-meta"><p id="result-count" role="status" aria-live="polite"></p><button id="reset" class="text-button" hidden>清除筛选</button></div>
+        <div id="group-toolbar" class="group-toolbar"><span>按模型与关系分类，展开后查看公式。</span><div><button id="expand-groups" class="browse-button">展开全部</button><button id="collapse-groups" class="browse-button">收起全部</button></div></div>
         <div id="formula-list"></div>
         <div id="empty-state" class="empty-state" hidden><span class="empty-symbol" aria-hidden="true">∅</span><h2>没有找到匹配的公式</h2><p>试试“高斯”“电容”或“圆周运动”，也可以清除筛选。</p><button id="empty-reset" class="primary-button">查看全部公式</button></div>
       </section>
@@ -48,6 +50,16 @@
       <footer>课程来源：第10章静电场 A · 第10章静电学 B · 第11章静磁场 A<br><span>内容依据现有复习提纲。公式中的近似条件与方向约定请结合题目检查。</span></footer>
     </main>
   </div>
-  <dialog id="formula-dialog" aria-labelledby="detail-title"><div class="detail-shell"><div class="detail-top"><span id="detail-chapter" class="eyebrow"></span><button id="close-detail" class="icon-button" aria-label="关闭公式详情">×</button></div><p id="detail-type" class="detail-type"></p><h2 id="detail-title"></h2><div id="detail-formula" class="detail-formula math-scroll"></div><div class="detail-section"><h3>变量含义</h3><dl id="detail-variables"></dl></div><div class="detail-section"><h3>适用条件</h3><p id="detail-condition"></p></div><div class="detail-section hint-section"><h3>解题提示</h3><p id="detail-hint"></p></div><p id="detail-source" class="detail-source"></p></div></dialog>
+  <dialog id="formula-dialog" aria-labelledby="detail-title"><div class="detail-shell">
+    <div class="detail-top"><span id="detail-chapter" class="eyebrow"></span><button id="close-detail" class="icon-button" aria-label="关闭公式详情">×</button></div>
+    <p id="detail-type" class="detail-type"></p><h2 id="detail-title"></h2><div id="detail-formula" class="detail-formula math-scroll"></div>
+    <div class="detail-section"><h3>适用条件</h3><p id="detail-condition"></p></div>
+    <details id="detail-derivation-panel" class="detail-disclosure" open><summary>推导过程与关系说明<span class="expand-mark" aria-hidden="true">+</span></summary><div class="detail-disclosure-body"><p id="detail-learning-kind" class="learning-kind"></p><ol id="detail-derivation" class="derivation-steps"></ol></div></details>
+    <details id="detail-solves-panel" class="detail-disclosure" open><summary>用它求哪些物理量？<span class="expand-mark" aria-hidden="true">+</span></summary><div id="detail-solves" class="detail-disclosure-body solve-list"></div></details>
+    <details id="detail-variables-panel" class="detail-disclosure"><summary>变量含义<span class="expand-mark" aria-hidden="true">+</span></summary><div class="detail-disclosure-body"><dl id="detail-variables"></dl></div></details>
+    <div class="detail-section hint-section"><h3>解题提示</h3><p id="detail-hint"></p></div>
+    <div class="detail-section"><h3>关联公式</h3><div id="detail-related" class="formula-references"></div></div>
+    <p id="detail-source" class="detail-source"></p>
+  </div></dialog>
 </body>
 </html>
