@@ -1,0 +1,88 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import { JSDOM } from 'jsdom';
+import katex from 'katex';
+
+// DOM simulation verifies event wiring and routing, not browser layout or glass appearance.
+const html=fs.readFileSync('dist/index.html','utf8');
+function load(hash='',coarse=false,reduced=false){
+  const dom=new JSDOM(html,{url:`https://example.test/electromagnetism-formula-review/${hash}`,runScripts:'outside-only',pretendToBeVisual:true});
+  const w=dom.window;
+  w.katex=katex;
+  w.matchMedia=query=>({matches:query.includes('reduced-motion')?reduced:!coarse,addEventListener(){}});
+  w.HTMLElement.prototype.scrollIntoView=function(){this.dataset.scrolled='true';};
+  w.HTMLDialogElement.prototype.showModal=function(){this.setAttribute('open','');};
+  w.HTMLDialogElement.prototype.close=function(){this.removeAttribute('open');this.dispatchEvent(new w.Event('close'));};
+  for(const file of ['data.js','content.js','summary.js','app.js'])w.eval(fs.readFileSync('dist/'+file,'utf8'));
+  return dom;
+}
+const dom=load(),w=dom.window,d=w.document,$=id=>d.getElementById(id);
+const settle=()=>new Promise(resolve=>w.setTimeout(resolve,25));
+const displayedCards=()=>[...d.querySelectorAll('.formula-card')];
+assert.equal(displayedCards().length,83,'All formulas load without a startup exception');
+assert.equal(d.querySelectorAll('.quantity-card').length,12);
+assert.equal(d.querySelectorAll('.pitfall-card').length,16);
+assert.equal(d.querySelectorAll('.katex-error').length,0);
+
+$('summary-tab').click();
+assert.equal(w.location.hash,'#summary');
+assert.equal($('summary-view').hidden,false);
+assert.equal($('formula-view').hidden,true);
+assert.equal($('summary-tab').getAttribute('aria-selected'),'true');
+assert.match($('page-title').textContent,/总结/);
+d.querySelector('[data-scroll="quantity-hall"]').click();
+assert.equal($('quantity-hall').open,true);
+assert.equal($('quantity-hall').dataset.scrolled,'true');
+
+// Every reference on the new page must open the intended existing formula, not a stale card.
+const formulas=w.REVIEW_DATA.formulas;
+for(const button of d.querySelectorAll('#summary-view [data-formula]')){
+  button.click();
+  assert.equal($('formula-dialog').open,true);
+  assert.equal($('detail-title').textContent,formulas.find(f=>f.id===button.dataset.formula).title);
+  assert.ok($('detail-variables').children.length>0);
+  assert.equal(d.body.style.overflow,'hidden');
+  $('close-detail').click();
+  assert.equal(d.body.style.overflow,'');
+}
+
+$('summary-tab').dispatchEvent(new w.KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true}));
+assert.equal($('guide-view').hidden,false);
+assert.equal(d.activeElement,$('guide-tab'));
+$('guide-tab').dispatchEvent(new w.KeyboardEvent('keydown',{key:'End',bubbles:true}));
+assert.equal(d.activeElement,$('summary-tab'));
+$('summary-tab').dispatchEvent(new w.KeyboardEvent('keydown',{key:'Home',bubbles:true}));
+assert.equal($('formula-view').hidden,false);
+assert.equal(d.activeElement,$('formula-tab'));
+
+$('search').value='霍尔电压';$('search').dispatchEvent(new w.Event('input',{bubbles:true}));
+assert.equal(displayedCards().length,1);
+assert.equal(displayedCards()[0].dataset.formula,'hall-voltage');
+$('summary-tab').click();$('formula-tab').click();
+assert.equal($('search').value,'霍尔电压','Switching views preserves search');
+assert.equal(displayedCards().length,1);
+$('reset').click();
+assert.equal(displayedCards().length,83);
+w.location.hash='particles';await settle();
+assert.equal(displayedCards().length,12);
+assert.match($('page-title').textContent,/粒子/);
+$('type-filter').value='受力运动';$('type-filter').dispatchEvent(new w.Event('change'));
+assert.ok(displayedCards().length>0);
+assert.ok(displayedCards().every(card=>card.querySelector('.card-type').textContent==='受力运动'));
+$('search').value='no-match';$('search').dispatchEvent(new w.Event('input'));
+assert.equal($('empty-state').hidden,false);
+$('empty-reset').click();assert.equal(displayedCards().length,83);
+
+d.dispatchEvent(new w.MouseEvent('pointermove',{clientX:50,clientY:50,bubbles:true}));await settle();
+assert.equal(d.body.classList.contains('pointer-active'),true);
+w.dispatchEvent(new w.Event('blur'));
+assert.equal(d.body.classList.contains('pointer-active'),false);
+dom.window.close();
+for(const [hash,coarse,reduced] of [['#summary',true,false],['#guide',false,true]]){
+  const direct=load(hash,coarse,reduced),doc=direct.window.document;
+  assert.equal(doc.getElementById(hash.slice(1)+'-view').hidden,false,'Deep link opens correct view');
+  doc.dispatchEvent(new direct.window.MouseEvent('pointermove',{bubbles:true}));
+  assert.equal(doc.body.classList.contains('pointer-active'),false,'Coarse pointer or reduced motion keeps static glass');
+  direct.window.close();
+}
+console.log('PASS: startup, 3-view routing, keyboard tabs, search/filter/reset, all summary formula details, jump links, and pointer preferences (DOM simulation; no visual layout verification).');

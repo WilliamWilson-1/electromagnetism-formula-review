@@ -14,6 +14,8 @@ GitHub Pages 使用 `gh-pages` 分支的根目录发布，发布内容与 `dist/
 - 筛选基本定律、定义关系、典型模型或受力运动。
 - 点击公式打开详情；Escape 关闭；按 `/` 聚焦搜索。
 - “做题思路”展示六步方法、三个模板、题型选择与易错点。
+- “总结辨析”按 12 类物理量比较不同求法，包含 16 组易错辨析、5 条综合路线与六项自检；关联公式覆盖全部 83 条，点击即可查看详情。可通过 `#summary` 直达。
+- 卡片、导航、筛选与详情采用 Liquid Glass 的透明层次、高光边缘；鼠标附近柔光跟随，触屏与减少动效模式保持静态显示。
 - 使用本地 KaTeX 与字体，支持行内及独立公式；移动端长公式局部横向滚动。
 
 ## 本地运行
@@ -42,9 +44,13 @@ dist/index.html        页面与可访问性结构
 dist/styles.css       桌面及移动端样式
 dist/data.js          章节、变量和基础公式
 dist/content.js       完整公式与做题思路
+dist/summary.js       按物理量的求法、易错辨析与关联公式
 dist/app.js           搜索、筛选、导航、详情交互
 dist/vendor/katex/    本地公式引擎和字体
 scripts/check.mjs    公式解析、数据完整性与资源检查
+scripts/check-interactions.mjs  页面路由与交互的 DOM 模拟检查
 ```
 
 支持减少动效设置、键盘导航、详情焦点约束与可访问的数学标记。支持浏览器的 WebMCP 功能时也可调用 `search_formulas`、`open_formula_detail`。
+
+`npm run check` 校验公式与总结引用，并用 DOM 模拟验证导航、检索、筛选、总结公式详情与动效偏好。该检查不替代真实浏览器中的桌面/移动布局与视觉检查。
