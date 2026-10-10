@@ -4,7 +4,8 @@
   const $ = id => document.getElementById(id);
   const state = { chapter:'all', query:'', type:'全部类型', mode:'formulas' };
   const expandedGroups=new Map();
-  const modes = [['formulas','formula'],['guide','guide'],['summary','summary']];
+  const modes = [['formulas','formula'],['guide','guide'],['summary','summary'],['quiz','quiz']];
+  let quizController=null;
   const escape = text => String(text).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
   const math = (latex, displayMode=true) => window.katex ? katex.renderToString(latex,{displayMode,throwOnError:false,strict:'ignore',output:'htmlAndMathml'}) : escape(latex);
   const prose = text => text.split(/(\$[^$]+\$)/g).map(part => part.startsWith('$')&&part.endsWith('$')?math(part.slice(1,-1),false):escape(part)).join('');
@@ -70,7 +71,7 @@
   function reset(){state.chapter='all';state.query='';state.type='全部类型';$('search').value='';$('type-filter').value='全部类型';history.replaceState(null,'','#all');render();}
   function updateHeading(){
     const chapter=chapters.find(c=>c.id===state.chapter);
-    const headings={formulas:[chapter?chapter.title:'电磁学公式交互式复习',chapter?chapter.description:'按章节和模型找公式，点击查看推导、物理量求法与适用条件。'],guide:['做题思路','从对称性、边界条件与守恒关系开始，先选方法，再代公式。'],summary:['总结与易错辨析','同一个物理量的不同求法，串联现有公式与适用条件。']};
+    const headings={formulas:[chapter?chapter.title:'电磁学公式交互式复习',chapter?chapter.description:'按章节和模型找公式，点击查看推导、物理量求法与适用条件。'],guide:['做题思路','从对称性、边界条件与守恒关系开始，先选方法，再代公式。'],summary:['总结与易错辨析','同一个物理量的不同求法，串联现有公式与适用条件。'],quiz:['随机小测试','抽几道选择题，考察公式、知识点与题目解法。']};
     [$('page-title').textContent,$('page-description').textContent]=headings[state.mode];
   }
   function setMode(mode,updateHash=false){
@@ -79,8 +80,9 @@
     if(updateHash)history.pushState(null,'','#'+(mode==='formulas'?state.chapter:mode));
     updateHeading();
     if(mode==='formulas')document.querySelectorAll('.card-formula').forEach(fitFormula);
+    if(mode==='quiz')quizController?.onShow();
   }
-  function route(){const id=location.hash.slice(1);if(id==='main')return;if(id==='guide'||id==='summary')setMode(id);else{setMode('formulas');setChapter(id);}}
+  function route(){const id=location.hash.slice(1);if(id==='main')return;if(['guide','summary','quiz'].includes(id))setMode(id);else{setMode('formulas');setChapter(id);}}
   $('type-filter').innerHTML=types.map(t=>`<option>${t}</option>`).join('');
   $('search').addEventListener('input',event=>{state.query=event.target.value.trim();render();});
   $('type-filter').addEventListener('change',event=>{state.type=event.target.value;render();});
@@ -118,7 +120,7 @@
   $('summary-view').addEventListener('click',event=>{const button=event.target.closest('[data-scroll]');if(!button)return;const target=$(button.dataset.scroll);if(target.tagName==='DETAILS')target.open=true;target.scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});if(target.tagName==='DETAILS')target.querySelector('summary').focus({preventScroll:true});else target.focus({preventScroll:true});});
 
   // Track only visible glass surfaces. Read all geometry before writing pointer styles.
-  const glassSelector='.formula-card,.formula-group,.browse-button,.solve-card,.mode-tabs button,.nav-link,.search-box,.filter-control,.mobile-chapter,.icon-button,.steps li,.template,.mistakes,.quantity-card,.method-card,.pitfall-card,.chain-card,.summary-intro,.summary-nav button,.quantity-nav button,.formula-reference,.final-checks article';
+  const glassSelector='.quiz-intro,.quiz-setup,.quiz-setting,.quiz-question,.quiz-choice,.quiz-feedback,.quiz-results,.quiz-review-item,.formula-card,.formula-group,.browse-button,.solve-card,.mode-tabs button,.nav-link,.search-box,.filter-control,.mobile-chapter,.icon-button,.steps li,.template,.mistakes,.quantity-card,.method-card,.pitfall-card,.chain-card,.summary-intro,.summary-nav button,.quantity-nav button,.formula-reference,.final-checks article';
   const tracked=new Set(), visible=new Set();
   const observer=typeof IntersectionObserver==='function'?new IntersectionObserver(entries=>{for(const entry of entries){if(entry.isIntersecting)visible.add(entry.target);else visible.delete(entry.target);}}):null;
   function syncGlass(){
@@ -147,5 +149,6 @@
     register({name:'open_formula_detail',description:'在页面打开一条课程公式，查看变量、适用条件与解题提示。',inputSchema:{type:'object',properties:{id:{type:'string'}},required:['id'],additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:false},execute(input){if(!input||typeof input.id!=='string'||!formulas.some(f=>f.id===input.id))throw new Error('Unknown formula');openFormula(input.id);return {id:input.id,title:$('detail-title').textContent,opened:true};}});
     window.addEventListener('pagehide',()=>lifecycle.abort(),{once:true});
   }
+  quizController=window.mountReviewQuiz({root:$('quiz-view'),chapters,quiz:window.REVIEW_DATA.quiz,formulas,prose,math,escape,syncGlass});
   setChapter('all');route();
 })();
