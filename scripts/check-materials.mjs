@@ -28,6 +28,30 @@ for(const [theme,overrides] of Object.entries(themes)){
   }
 }
 const html=fs.readFileSync('dist/index.html','utf8'),source=fs.readFileSync('dist/materials.js','utf8');
+// Exercise the generated guide with both stylesheets: token contrast alone misses
+// a legacy component selector overriding the material background with white.
+const guideDOM=new JSDOM(html,{url:'https://example.test/#guide',runScripts:'outside-only',pretendToBeVisual:true});
+const gw=guideDOM.window,gd=gw.document;
+gw.matchMedia=()=>({matches:false,addEventListener(){}});
+gw.HTMLElement.prototype.scrollIntoView=function(){};
+for(const file of ['data.js','content.js','summary.js','learning.js','quiz-data.js','quiz-engine.js','quiz-ui.js','materials.js','segments.js','app.js'])gw.eval(fs.readFileSync('dist/'+file,'utf8'));
+assert.equal(gd.querySelectorAll('.steps li').length,6);
+const guideStyles=gd.createElement('style');gd.head.append(guideStyles);
+for(const [theme,reduced] of [['light',false],['dark',false],['dark',true]]){
+  const tokens={...themes[':root'],...(theme==='dark'?themes[':root[data-theme="dark"]']: {})};
+  if(reduced)tokens['--content-fill']=tokens['--paper'];
+  gd.documentElement.dataset.theme=theme;
+  gd.documentElement.dataset.transparency=reduced?'reduced':'regular';
+  // jsdom does not resolve CSS variables. Substitute known theme tokens before
+  // checking the real stylesheet cascade; this is not a rendered pixel check.
+  guideStyles.textContent=['styles.css','materials.css'].map(file=>fs.readFileSync('dist/'+file,'utf8').replace(/var\((--[\w-]+)(?:,\s*var\(--paper\))?\)/g,(match,name)=>tokens[name]??match)).join('\n');
+  const probe=gd.createElement('div');probe.style.backgroundColor=tokens['--content-fill'];gd.body.append(probe);
+  const expected=gw.getComputedStyle(probe).backgroundColor;probe.remove();
+  for(const card of gd.querySelectorAll('.steps li,.template,.mistakes,.guide-block table')){
+    assert.equal(gw.getComputedStyle(card).backgroundColor,expected,`${theme}${reduced?' reduced':''}: ${card.className||card.tagName} uses the reading surface`);
+  }
+}
+guideDOM.window.close();
 function load({dark=false,systemSolid=false,reduced=false,saved=null,storageBlocked=false}={}){
   const dom=new JSDOM(html,{url:'https://example.test/',runScripts:'outside-only',pretendToBeVisual:true}),w=dom.window;
   const queries=new Map();
