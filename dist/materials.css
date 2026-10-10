@@ -32,6 +32,8 @@
   --focus: #257950;
   --rim-light: rgba(255, 255, 255, .78);
   --spot-light: rgba(255, 255, 255, .75);
+  --sidebar-glow-rgb: 255, 255, 255;
+  --sidebar-glow-alpha: .75;
   --chrome-height: 64px;
   --sticky-top: 88px;
   --material-ease: cubic-bezier(.2, .8, .2, 1);
@@ -67,6 +69,8 @@
   --focus: #a2debc;
   --rim-light: rgba(234, 255, 242, .33);
   --spot-light: rgba(226, 255, 237, .13);
+  --sidebar-glow-rgb: 226, 255, 237;
+  --sidebar-glow-alpha: .13;
 }
 
 body { background: var(--bg); isolation: isolate; }
@@ -116,6 +120,13 @@ body { background: var(--bg); isolation: isolate; }
 .source-link:hover { background: var(--hover-fill); }
 .edition, .sidebar-heading .mono, .sidebar-note > span, .nav-group, .nav-count, .nav-number { color: var(--muted); }
 .sidebar { position: sticky; top: var(--sticky-top); height: calc(100dvh - 104px); margin: 16px 0 16px 16px; padding: 24px 12px; border-radius: 26px; }
+/* Paint the glow on the visible border box: absolute pseudo-elements scroll with its contents. */
+.sidebar.glass-surface {
+  background: radial-gradient(220px circle at var(--spot-x, 50%) var(--spot-y, 0%), rgba(var(--sidebar-glow-rgb), calc(var(--sidebar-glow-alpha) * var(--spot-opacity, 0))), transparent 72%), var(--glass-fill);
+  background-origin: border-box;
+  background-attachment: scroll;
+}
+.sidebar.glass-surface::before, .sidebar.glass-surface::after { content: none; }
 .sidebar-heading { font-size: 13px; gap: 8px; }
 .sidebar-heading .mono { font-size: 10px; }
 .nav-link { border: 1px solid transparent; padding: 11px 10px; border-radius: 14px; min-height: 44px; background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: none; }
@@ -240,6 +251,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   :root { --muted: #34473d; --line: rgba(37, 56, 44, .4); --glass-fill: #f9fcfa; --glass-control: #f9fcfa; }
   :root[data-theme="dark"] { --muted: #d6e6db; --line: rgba(225, 247, 233, .45); --glass-fill: #1e2923; --glass-control: #1e2923; }
   .glass-surface { backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .sidebar.glass-surface { background: var(--glass-fill); }
   .glass-surface::before, .interactive-surface::before, .cursor-aura { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -287,7 +299,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .quiz-answer-actions > button, .quiz-result-actions > button, .quiz-setup > .primary-button { border-radius: 999px; }
 }
 @media (forced-colors: active) {
-  .glass-surface, .content-surface, dialog { background: Canvas; color: CanvasText; border: 1px solid CanvasText; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .glass-surface, .sidebar.glass-surface, .content-surface, dialog { background: Canvas; color: CanvasText; border: 1px solid CanvasText; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
   .ambient-light, .cursor-aura, .glass-surface::before, .glass-surface::after, .interactive-surface::before, .tab-highlight { display: none; }
   .mode-tabs button[aria-selected="true"], .nav-link.active, .quiz-choice > input:checked + label { outline: 2px solid Highlight; outline-offset: -3px; }
   .primary-button.glass-surface { background: ButtonFace; color: ButtonText; }

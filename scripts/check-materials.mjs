@@ -6,6 +6,10 @@ import * as css from 'css-tree';
 const stylesheet=fs.readFileSync('dist/materials.css','utf8');
 for(const file of ['styles.css','materials.css'])css.parse(fs.readFileSync('dist/'+file,'utf8'),{onParseError(error){throw new Error(file+': '+error.formattedMessage);}});
 const ast=css.parse(stylesheet),themes={};
+const sidebarRule=[...ast.children].find(rule=>rule.type==='Rule'&&css.generate(rule.prelude)==='.sidebar.glass-surface');
+const sidebarPaint=Object.fromEntries([...sidebarRule.block.children].filter(node=>node.type==='Declaration').map(node=>[node.property,css.generate(node.value).trim()]));
+assert.equal(sidebarPaint['background-origin'],'border-box');
+assert.equal(sidebarPaint['background-attachment'],'scroll','Sidebar glow stays fixed to the visible box rather than scrolling content');
 for(const rule of ast.children)if(rule.type==='Rule'&&[':root',':root[data-theme="dark"]'].includes(css.generate(rule.prelude))){
   const tokens={};for(const node of rule.block.children)if(node.type==='Declaration')tokens[node.property]=css.generate(node.value).trim();
   themes[css.generate(rule.prelude)]=tokens;
@@ -55,6 +59,18 @@ w.REVIEW_MATERIALS.updateTabs();await settle();
 assert.equal(d.querySelector('.tab-highlight').style.transform,'translate(306px,5px)');
 assert.equal(d.querySelector('.tab-highlight').style.width,'96px');
 d.dispatchEvent(new w.MouseEvent('pointermove',{clientX:50,clientY:50,bubbles:true}));await settle();assert.equal(d.body.classList.contains('pointer-active'),true);
+// Reconstruct the glow center in viewport coordinates as the sidebar scrolls and sticks.
+const sidebar=d.querySelector('.sidebar');
+let sidebarRect={left:16,top:88,right:256,bottom:688,width:240,height:600};
+sidebar.getBoundingClientRect=()=>sidebarRect;
+for(const [scrollTop,top,x,y] of [[0,88,80,200],[160,88,100,500],[240,120,76,620]]){
+  sidebar.scrollTop=scrollTop;sidebarRect={...sidebarRect,top,bottom:top+600};
+  sidebar.dispatchEvent(new w.Event('scroll'));
+  d.dispatchEvent(new w.MouseEvent('pointermove',{clientX:x,clientY:y,bubbles:true}));await settle();
+  assert.equal(sidebarRect.left+parseFloat(sidebar.style.getPropertyValue('--spot-x')),x);
+  assert.equal(sidebarRect.top+parseFloat(sidebar.style.getPropertyValue('--spot-y')),y,'Scrolled sidebar glow aligns with cursor');
+  assert.equal(sidebar.style.getPropertyValue('--spot-opacity'),'1');
+}
 $('appearance-solid').checked=true;$('appearance-solid').dispatchEvent(new w.Event('change',{bubbles:true}));
 assert.equal(root.dataset.transparency,'reduced');assert.equal(d.body.classList.contains('pointer-active'),false);
 d.dispatchEvent(new w.MouseEvent('pointermove',{bubbles:true}));await settle();assert.equal(d.body.classList.contains('pointer-active'),false);
