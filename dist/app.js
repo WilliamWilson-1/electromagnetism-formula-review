@@ -81,6 +81,7 @@
     updateHeading();
     if(mode==='formulas')document.querySelectorAll('.card-formula').forEach(fitFormula);
     if(mode==='quiz')quizController?.onShow();
+    window.REVIEW_MATERIALS.updateTabs();
   }
   function route(){const id=location.hash.slice(1);if(id==='main')return;if(['guide','summary','quiz'].includes(id))setMode(id);else{setMode('formulas');setChapter(id);}}
   $('type-filter').innerHTML=types.map(t=>`<option>${t}</option>`).join('');
@@ -119,28 +120,8 @@
     <section id="summary-checks" class="summary-section" tabindex="-1"><div class="summary-heading"><span class="section-number">04</span><h2>交卷前的六项检查。</h2></div><div class="final-checks">${summary.checks.map(([label,content])=>`<article><span>${label}</span><p>${content}</p></article>`).join('')}</div><p class="summary-source">依据三份课件整理的现有提纲与 ${formulas.length} 条公式；上面的反解与路线是对这些关系的整理，适用条件以公式详情和题目为准。</p></section>`;
   $('summary-view').addEventListener('click',event=>{const button=event.target.closest('[data-scroll]');if(!button)return;const target=$(button.dataset.scroll);if(target.tagName==='DETAILS')target.open=true;target.scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});if(target.tagName==='DETAILS')target.querySelector('summary').focus({preventScroll:true});else target.focus({preventScroll:true});});
 
-  // Track only visible glass surfaces. Read all geometry before writing pointer styles.
-  const glassSelector='.quiz-intro,.quiz-setup,.quiz-setting,.quiz-question,.quiz-choice,.quiz-feedback,.quiz-results,.quiz-review-item,.formula-card,.formula-group,.browse-button,.solve-card,.mode-tabs button,.nav-link,.search-box,.filter-control,.mobile-chapter,.icon-button,.steps li,.template,.mistakes,.quantity-card,.method-card,.pitfall-card,.chain-card,.summary-intro,.summary-nav button,.quantity-nav button,.formula-reference,.final-checks article';
-  const tracked=new Set(), visible=new Set();
-  const observer=typeof IntersectionObserver==='function'?new IntersectionObserver(entries=>{for(const entry of entries){if(entry.isIntersecting)visible.add(entry.target);else visible.delete(entry.target);}}):null;
-  function syncGlass(){
-    for(const element of tracked)if(!element.isConnected){observer?.unobserve(element);tracked.delete(element);visible.delete(element);}
-    document.querySelectorAll(glassSelector).forEach(element=>{element.classList.add('glass-surface');if(tracked.has(element))return;tracked.add(element);if(observer)observer.observe(element);else visible.add(element);});
-  }
-  const pointerMedia=matchMedia('(hover: hover) and (pointer: fine)'), reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
-  let pointerFrame=0,point={x:0,y:0};
-  function clearLight(){if(pointerFrame){cancelAnimationFrame(pointerFrame);pointerFrame=0;}document.body.classList.remove('pointer-active');for(const element of tracked)element.style.removeProperty('--spot-opacity');}
-  document.addEventListener('pointermove',event=>{
-    if(event.pointerType==='touch'||!pointerMedia.matches||reducedMotion.matches)return;
-    point={x:event.clientX,y:event.clientY};if(pointerFrame)return;
-    pointerFrame=requestAnimationFrame(()=>{pointerFrame=0;document.body.classList.add('pointer-active');document.querySelector('.cursor-aura').style.transform=`translate3d(${point.x-250}px,${point.y-250}px,0)`;
-      const positions=[...visible].filter(element=>element.isConnected).map(element=>[element,element.getBoundingClientRect()]);
-      for(const [element,rect] of positions){const distance=Math.hypot(Math.max(rect.left-point.x,0,point.x-rect.right),Math.max(rect.top-point.y,0,point.y-rect.bottom));element.style.setProperty('--spot-x',`${point.x-rect.left}px`);element.style.setProperty('--spot-y',`${point.y-rect.top}px`);element.style.setProperty('--spot-opacity',String(Math.max(0,1-distance/260)));}
-    });
-  },{passive:true});
-  document.addEventListener('pointerleave',clearLight);window.addEventListener('blur',clearLight);window.addEventListener('scroll',clearLight,{passive:true});
-  for(const media of [pointerMedia,reducedMotion])media.addEventListener('change',clearLight);
-  window.addEventListener('resize',()=>{clearLight();if(state.mode==='formulas')document.querySelectorAll('.card-formula').forEach(fitFormula);});
+  function syncGlass(){window.REVIEW_MATERIALS.sync();}
+  window.addEventListener('resize',()=>{if(state.mode==='formulas')document.querySelectorAll('.card-formula').forEach(fitFormula);});
   syncGlass();
   const context=document.modelContext;
   if(context?.registerTool){const lifecycle=new AbortController();

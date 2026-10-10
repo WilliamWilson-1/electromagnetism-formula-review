@@ -9,11 +9,11 @@ function load(hash='',coarse=false,reduced=false){
   const dom=new JSDOM(html,{url:`https://example.test/electromagnetism-formula-review/${hash}`,runScripts:'outside-only',pretendToBeVisual:true});
   const w=dom.window;
   w.katex=katex;
-  w.matchMedia=query=>({matches:query.includes('reduced-motion')?reduced:!coarse,addEventListener(){}});
+  w.matchMedia=query=>({matches:query.includes('reduced-motion')?reduced:query.includes('pointer: fine')?!coarse:false,addEventListener(){}});
   w.HTMLElement.prototype.scrollIntoView=function(){this.dataset.scrolled='true';};
   w.HTMLDialogElement.prototype.showModal=function(){this.setAttribute('open','');};
   w.HTMLDialogElement.prototype.close=function(){this.removeAttribute('open');this.dispatchEvent(new w.Event('close'));};
-  for(const file of ['data.js','content.js','summary.js','learning.js','quiz-data.js','quiz-engine.js','quiz-ui.js','app.js'])w.eval(fs.readFileSync('dist/'+file,'utf8'));
+  for(const file of ['data.js','content.js','summary.js','learning.js','quiz-data.js','quiz-engine.js','quiz-ui.js','materials.js','app.js'])w.eval(fs.readFileSync('dist/'+file,'utf8'));
   return dom;
 }
 const dom=load(),w=dom.window,d=w.document,$=id=>d.getElementById(id);

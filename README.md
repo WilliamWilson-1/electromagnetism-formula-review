@@ -18,7 +18,8 @@ GitHub Pages 使用 `gh-pages` 分支的根目录发布，发布内容与 `dist/
 - “做题思路”展示六步方法、三个模板、题型选择与易错点。
 - “总结辨析”按 12 类物理量比较不同求法，包含 16 组易错辨析、5 条综合路线与六项自检；关联公式覆盖全部 83 条，点击即可查看详情。可通过 `#summary` 直达。
 - “小测试”提供 66 道单项选择题，覆盖 11 章的公式、知识点和解法。可选章节、题型和 5/10/15 题；混合抽题兼顾题型与章节，题目及选项随机排列，一轮内不重复。提交后显示答案、解析与关联公式；结束后查看成绩、错题回顾、重练错题或重新抽题。范围不足时抽取全部题目，可通过 `#quiz` 直达。
-- 卡片、导航、筛选与详情采用 Liquid Glass 的透明层次、高光边缘；鼠标附近柔光跟随，触屏与减少动效模式保持静态显示。
+- 按 Apple 的材质层次重构：浮动导航、搜索、筛选和操作控件使用统一的玻璃材质，阅读卡片使用清晰的标准材质；圆润轮廓、高光边缘、柔和阴影和轻微光泽统一管理，标签指示器平滑滑动。鼠标附近高光跟随，触屏与减少动效模式保持静态显示。
+- 右上角“外观设置”支持跟随系统、浅色和深色，以及减少透明效果；选择保存在当前浏览器。支持系统减少透明度、增加对比度、减少动效与强制配色；不支持背景模糊的浏览器使用实色回退。
 - 使用本地 KaTeX 与字体，支持行内及独立公式；移动端长公式局部横向滚动。
 
 ## 本地运行
@@ -40,11 +41,20 @@ npm run dev
 
 界面风格参考 [animation-vocabulary](https://github.com/stan-rym/animation-vocabulary) 的浅灰底色、绿色强调与轻量卡片交互，未复制其动画实现或添加课程外内容。KaTeX 的许可随文件保留在 `dist/vendor/katex/LICENSE`。
 
+## 材质设计依据
+
+- [Apple：采用 Liquid Glass](https://developer.apple.com/cn/documentation/technologyoverviews/adopting-liquid-glass) 与 [HIG：Materials](https://developer.apple.com/design/human-interface-guidelines/materials)：以导航和控件形成独立的功能层，避免密集内容与嵌套控件过度使用玻璃效果；本网站以 regular 材质的可读性作为方向。
+- [用户提供的 Liquid Glass 网页指南](https://github.com/Joe-Mu-Yu/Joe-Mu-Yu.github.io/blob/main/LIQUID-GLASS-GUIDE.md)：参考边缘光、多层阴影、光泽及移动端降低模糊的实现思路。CSS 的具体透明度、模糊和阴影数值为本网站自定参数。
+
+这里使用 HTML/CSS 实现网页材质近似，并非 Apple 原生的 Liquid Glass 渲染器。公式、推导与课程范围保持原有内容。
+
 ## 项目结构
 
 ```text
 dist/index.html        页面与可访问性结构
 dist/styles.css       桌面及移动端样式
+dist/materials.css    玻璃功能层、阅读层、主题与可访问性样式
+dist/materials.js     外观偏好、标签指示器与局部光泽响应
 dist/data.js          章节、变量和基础公式
 dist/content.js       完整公式与做题思路
 dist/summary.js       按物理量的求法、易错辨析与关联公式
@@ -57,8 +67,9 @@ dist/vendor/katex/    本地公式引擎和字体
 scripts/check.mjs    公式解析、数据完整性与资源检查
 scripts/check-interactions.mjs  页面路由与交互的 DOM 模拟检查
 scripts/check-quiz.mjs  随机抽题、判分、解析与错题重练检查
+scripts/check-materials.mjs  材质语法、阅读配色对比度与外观偏好检查
 ```
 
 支持减少动效设置、键盘导航、详情焦点约束与可访问的数学标记。支持浏览器的 WebMCP 功能时也可调用 `search_formulas`、`open_formula_detail`。
 
-`npm run check` 校验公式、推导、反解、题库与引用，保证每条公式恰好归入一个分类；DOM 模拟验证折叠、搜索、导航、全部详情、关联跳转和测试流程。随机抽题检查验证题型及章节分布、不重复、选项乱序、范围限制与判分。该检查不替代真实浏览器中的桌面/移动布局与视觉检查。
+`npm run check` 校验公式、推导、反解、题库与引用，保证每条公式恰好归入一个分类；DOM 模拟验证折叠、搜索、导航、全部详情、关联跳转和测试流程。随机抽题检查验证题型及章节分布、不重复、选项乱序、范围限制与判分。材质检查验证 CSS 解析、浅/深色阅读与反馈配色的 4.5:1 对比度、外观保存、系统偏好与标签定位；对比度检查针对指定实色角色，不覆盖每个实际背景像素。该检查不替代真实浏览器中的桌面/移动布局与视觉检查。

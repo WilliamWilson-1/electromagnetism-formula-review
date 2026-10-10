@@ -8,7 +8,8 @@
   <title>电磁学公式复习站</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2312834b'/%3E%3Ctext x='16' y='24' text-anchor='middle' font-family='serif' font-size='26' fill='white'%3E%CE%A6%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="vendor/katex/katex.min.css">
-  <link rel="stylesheet" href="styles.css?v=quiz-3">
+  <link rel="stylesheet" href="styles.css?v=glass-4">
+  <link rel="stylesheet" href="materials.css?v=glass-4">
   <script defer src="vendor/katex/katex.min.js"></script>
   <script defer src="data.js"></script>
   <script defer src="content.js"></script>
@@ -17,7 +18,8 @@
   <script defer src="quiz-data.js"></script>
   <script defer src="quiz-engine.js"></script>
   <script defer src="quiz-ui.js"></script>
-  <script defer src="app.js?v=quiz-3"></script>
+  <script defer src="materials.js?v=glass-4"></script>
+  <script defer src="app.js?v=glass-4"></script>
 </head>
 <body>
   <div class="ambient-light" aria-hidden="true"></div>
@@ -27,6 +29,10 @@
     <a class="brand" href="#all" aria-label="电磁学公式复习站首页"><span class="brand-symbol" aria-hidden="true">Φ</span><span>电磁学公式复习站</span></a>
     <span class="edition">COURSE NOTES / 10—11</span>
     <a class="source-link" href="review-outline.md" download>下载复习提纲</a>
+    <details id="appearance-menu" class="appearance-menu">
+      <summary class="icon-button" aria-label="外观设置" title="外观设置"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></svg></summary>
+      <div class="appearance-panel"><h2>外观设置</h2><label for="appearance-theme">显示主题</label><select id="appearance-theme"><option value="system">跟随系统</option><option value="light">浅色</option><option value="dark">深色</option></select><label class="appearance-toggle"><input id="appearance-solid" type="checkbox"><span>减少透明效果</span></label></div>
+    </details>
   </header>
   <div class="workspace">
     <aside class="sidebar" aria-label="章节导航">
@@ -36,7 +42,7 @@
     </aside>
     <main id="main" tabindex="-1">
       <div class="page-heading"><div><span class="eyebrow">ELECTROMAGNETISM</span><h1 id="page-title">电磁学公式交互式复习</h1><p id="page-description">按章节和模型找公式，点击查看推导、物理量求法与适用条件。</p></div><div class="formula-total"><strong id="total-number">83</strong><span>条课程公式</span></div></div>
-      <div class="mode-tabs" role="tablist" aria-label="复习视图"><button id="formula-tab" role="tab" aria-selected="true" aria-controls="formula-view">公式索引</button><button id="guide-tab" role="tab" aria-selected="false" aria-controls="guide-view" tabindex="-1">做题思路</button><button id="summary-tab" role="tab" aria-selected="false" aria-controls="summary-view" tabindex="-1">总结辨析</button><button id="quiz-tab" role="tab" aria-selected="false" aria-controls="quiz-view" tabindex="-1">小测试</button></div>
+      <div class="mode-tabs" role="tablist" aria-label="复习视图"><span class="tab-highlight" aria-hidden="true"></span><button id="formula-tab" role="tab" aria-selected="true" aria-controls="formula-view">公式索引</button><button id="guide-tab" role="tab" aria-selected="false" aria-controls="guide-view" tabindex="-1">做题思路</button><button id="summary-tab" role="tab" aria-selected="false" aria-controls="summary-view" tabindex="-1">总结辨析</button><button id="quiz-tab" role="tab" aria-selected="false" aria-controls="quiz-view" tabindex="-1">小测试</button></div>
       <section id="formula-view" role="tabpanel" aria-labelledby="formula-tab">
         <div class="controls">
           <div class="search-box"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><label class="sr-only" for="search">检索公式、模型、物理量或推导内容</label><input id="search" type="search" placeholder="搜索公式、模型或求量方法…" autocomplete="off"><kbd aria-hidden="true">/</kbd></div>
