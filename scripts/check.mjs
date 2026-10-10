@@ -3,8 +3,8 @@ import vm from 'node:vm';
 import path from 'node:path';
 import katex from 'katex';
 const sandbox={window:{}};
-for(const file of ['dist/data.js','dist/content.js','dist/summary.js','dist/learning.js'])vm.runInNewContext(fs.readFileSync(file,'utf8'),sandbox,{filename:file});
-const {formulas,chapters,guide,summary,groups,learning}=sandbox.window.REVIEW_DATA;
+for(const file of ['dist/data.js','dist/content.js','dist/summary.js','dist/learning.js','dist/quiz-data.js'])vm.runInNewContext(fs.readFileSync(file,'utf8'),sandbox,{filename:file});
+const {formulas,chapters,guide,summary,groups,learning,quiz}=sandbox.window.REVIEW_DATA;
 const seen=new Set();
 for(const f of formulas){
   if(seen.has(f.id))throw new Error(`Duplicate id: ${f.id}`);seen.add(f.id);
@@ -43,5 +43,14 @@ for(const id of Object.keys(learning))if(!seen.has(id))throw new Error(`Unknown 
 for(const c of chapters)if(!formulas.some(f=>f.chapter===c.id))throw new Error(`Empty chapter: ${c.id}`);
 const html=fs.readFileSync('dist/index.html','utf8');
 for(const match of html.matchAll(/(?:src|href)="([^"#]+)"/g)){if(match[1].startsWith('data:'))continue;if(!fs.existsSync(path.join('dist',match[1].split('?')[0])))throw new Error(`Missing asset: ${match[1]}`);}
-new vm.Script(fs.readFileSync('dist/app.js','utf8'),{filename:'app.js'});
-console.log(`PASS: ${formulas.length} formulas with derivation and solve details, ${groups.length} model groups, ${chapters.length} chapters; all math, references, group coverage and local assets verified.`);
+const questionIds=new Set();
+for(const q of quiz.questions){
+  if(questionIds.has(q.id)||!q.id||!chapters.some(c=>c.id===q.chapter)||!Object.hasOwn(quiz.kinds,q.kind)||!q.prompt||!q.explanation||!q.refs.length)throw new Error(`Invalid quiz question: ${q.id}`);
+  questionIds.add(q.id);
+  if(q.options.length!==4||new Set(q.options).size!==4||q.options.some(o=>!o)||!Number.isInteger(q.answer)||q.answer<0||q.answer>=4)throw new Error(`Invalid quiz options: ${q.id}`);
+  for(const text of [q.prompt,q.explanation,...q.options])for(const match of text.matchAll(/\$([^$]+)\$/g))katex.renderToString(match[1],{throwOnError:true,strict:'ignore'});
+  for(const id of q.refs)if(!seen.has(id))throw new Error(`Unknown quiz formula: ${q.id} → ${id}`);
+}
+for(const chapter of chapters)for(const kind of Object.keys(quiz.kinds))if(!quiz.questions.some(q=>q.chapter===chapter.id&&q.kind===kind))throw new Error(`Quiz coverage missing: ${chapter.id}/${kind}`);
+for(const file of ['app.js','quiz-engine.js','quiz-ui.js'])new vm.Script(fs.readFileSync('dist/'+file,'utf8'),{filename:file});
+console.log(`PASS: ${formulas.length} formulas, ${groups.length} groups, ${chapters.length} chapters, ${quiz.questions.length} quiz questions; math, references, coverage and local assets verified.`);

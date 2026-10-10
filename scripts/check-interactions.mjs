@@ -13,7 +13,7 @@ function load(hash='',coarse=false,reduced=false){
   w.HTMLElement.prototype.scrollIntoView=function(){this.dataset.scrolled='true';};
   w.HTMLDialogElement.prototype.showModal=function(){this.setAttribute('open','');};
   w.HTMLDialogElement.prototype.close=function(){this.removeAttribute('open');this.dispatchEvent(new w.Event('close'));};
-  for(const file of ['data.js','content.js','summary.js','learning.js','app.js'])w.eval(fs.readFileSync('dist/'+file,'utf8'));
+  for(const file of ['data.js','content.js','summary.js','learning.js','quiz-data.js','quiz-engine.js','quiz-ui.js','app.js'])w.eval(fs.readFileSync('dist/'+file,'utf8'));
   return dom;
 }
 const dom=load(),w=dom.window,d=w.document,$=id=>d.getElementById(id);
@@ -75,8 +75,8 @@ $('summary-tab').dispatchEvent(new w.KeyboardEvent('keydown',{key:'ArrowLeft',bu
 assert.equal($('guide-view').hidden,false);
 assert.equal(d.activeElement,$('guide-tab'));
 $('guide-tab').dispatchEvent(new w.KeyboardEvent('keydown',{key:'End',bubbles:true}));
-assert.equal(d.activeElement,$('summary-tab'));
-$('summary-tab').dispatchEvent(new w.KeyboardEvent('keydown',{key:'Home',bubbles:true}));
+assert.equal(d.activeElement,$('quiz-tab'));
+$('quiz-tab').dispatchEvent(new w.KeyboardEvent('keydown',{key:'Home',bubbles:true}));
 assert.equal($('formula-view').hidden,false);
 assert.equal(d.activeElement,$('formula-tab'));
 
@@ -107,7 +107,7 @@ assert.equal(d.body.classList.contains('pointer-active'),true);
 w.dispatchEvent(new w.Event('blur'));
 assert.equal(d.body.classList.contains('pointer-active'),false);
 dom.window.close();
-for(const [hash,coarse,reduced] of [['#summary',true,false],['#guide',false,true]]){
+for(const [hash,coarse,reduced] of [['#summary',true,false],['#guide',false,true],['#quiz',true,false]]){
   const direct=load(hash,coarse,reduced),doc=direct.window.document;
   assert.equal(doc.getElementById(hash.slice(1)+'-view').hidden,false,'Deep link opens correct view');
   doc.dispatchEvent(new direct.window.MouseEvent('pointermove',{bubbles:true}));
