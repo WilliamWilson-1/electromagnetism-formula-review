@@ -35,6 +35,7 @@
     if(tabFrame)cancelAnimationFrame(tabFrame);
     tabFrame=requestAnimationFrame(()=>{
       tabFrame=0;const tabs=document.querySelector('.mode-tabs'),active=tabs.querySelector('[aria-selected="true"]'),pill=tabs.querySelector('.tab-highlight');
+      if(tabs.classList.contains('is-dragging'))return;
       // Real layout supplies these metrics; avoid guessing offsets in hidden or simulated documents.
       if(active.offsetWidth){pill.style.width=active.offsetWidth+'px';pill.style.height=active.offsetHeight+'px';pill.style.transform=`translate(${active.offsetLeft}px,${active.offsetTop}px)`;tabs.classList.add('tabs-measured');}
     });
