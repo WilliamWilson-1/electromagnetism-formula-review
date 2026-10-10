@@ -13,7 +13,7 @@ function load(hash='',coarse=false,reduced=false){
   w.HTMLElement.prototype.scrollIntoView=function(){this.dataset.scrolled='true';};
   w.HTMLDialogElement.prototype.showModal=function(){this.setAttribute('open','');};
   w.HTMLDialogElement.prototype.close=function(){this.removeAttribute('open');this.dispatchEvent(new w.Event('close'));};
-  for(const file of ['data.js','content.js','summary.js','learning.js','quiz-data.js','quiz-engine.js','quiz-ui.js','materials.js','app.js'])w.eval(fs.readFileSync('dist/'+file,'utf8'));
+  for(const file of ['data.js','content.js','summary.js','learning.js','quiz-data.js','quiz-engine.js','quiz-ui.js','materials.js','segments.js','app.js'])w.eval(fs.readFileSync('dist/'+file,'utf8'));
   return dom;
 }
 const dom=load(),w=dom.window,d=w.document,$=id=>d.getElementById(id);

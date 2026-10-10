@@ -5,7 +5,7 @@
   "description": "依据课程复习提纲制作的电磁学公式复习站",
   "scripts": {
     "vendor": "node scripts/vendor.mjs",
-    "check": "node scripts/check.mjs && node scripts/check-interactions.mjs && node scripts/check-quiz.mjs && node scripts/check-materials.mjs",
+    "check": "node scripts/check.mjs && node scripts/check-interactions.mjs && node scripts/check-quiz.mjs && node scripts/check-materials.mjs && node scripts/check-segments.mjs",
     "dev": "python3 -m http.server 4173 --directory dist"
   },
   "dependencies": {

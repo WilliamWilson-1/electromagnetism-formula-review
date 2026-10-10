@@ -52,5 +52,5 @@ for(const q of quiz.questions){
   for(const id of q.refs)if(!seen.has(id))throw new Error(`Unknown quiz formula: ${q.id} → ${id}`);
 }
 for(const chapter of chapters)for(const kind of Object.keys(quiz.kinds))if(!quiz.questions.some(q=>q.chapter===chapter.id&&q.kind===kind))throw new Error(`Quiz coverage missing: ${chapter.id}/${kind}`);
-for(const file of ['app.js','quiz-engine.js','quiz-ui.js','materials.js'])new vm.Script(fs.readFileSync('dist/'+file,'utf8'),{filename:file});
+for(const file of ['app.js','quiz-engine.js','quiz-ui.js','materials.js','segments.js'])new vm.Script(fs.readFileSync('dist/'+file,'utf8'),{filename:file});
 console.log(`PASS: ${formulas.length} formulas, ${groups.length} groups, ${chapters.length} chapters, ${quiz.questions.length} quiz questions; math, references, coverage and local assets verified.`);

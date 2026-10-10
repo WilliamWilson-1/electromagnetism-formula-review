@@ -99,6 +99,7 @@
   $('formula-dialog').addEventListener('click',event=>{if(event.target===$('formula-dialog')){const rect=event.target.getBoundingClientRect();if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)event.target.close();}});
   $('formula-dialog').addEventListener('close',()=>{document.body.style.overflow='';});
   $('reset').addEventListener('click',reset);$('empty-reset').addEventListener('click',reset);
+  window.mountReviewSegments({root:document.querySelector('.mode-tabs'),onSelect:index=>setMode(modes[index][0],true),onLayout:()=>window.REVIEW_MATERIALS.updateTabs()});
   for(const [value,prefix] of modes)$(prefix+'-tab').addEventListener('click',()=>setMode(value,true));
   document.querySelector('.mode-tabs').addEventListener('keydown',event=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(event.key)){event.preventDefault();let index=modes.findIndex(([value])=>value===state.mode);index=event.key==='Home'?0:event.key==='End'?modes.length-1:(index+(event.key==='ArrowRight'?1:-1)+modes.length)%modes.length;setMode(modes[index][0],true);$(modes[index][1]+'-tab').focus();}});
   document.addEventListener('keydown',event=>{if(event.key==='/'&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)&&!$('formula-dialog').open){event.preventDefault();setMode('formulas',true);$('search').focus();}});

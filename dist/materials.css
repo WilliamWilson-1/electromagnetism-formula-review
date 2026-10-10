@@ -21,6 +21,9 @@
   --hover-fill: rgba(30, 75, 49, .055);
   --selected-fill: rgba(248, 255, 251, .92);
   --selected-edge: rgba(255, 255, 255, .95);
+  --segment-track: rgba(205, 222, 213, .35);
+  --segment-thumb: rgba(255, 255, 255, .28);
+  --segment-edge: rgba(255, 255, 255, .76);
   --tint-fill: rgba(209, 235, 220, .64);
   --primary-fill: #176c47;
   --primary-ink: #fff;
@@ -60,6 +63,9 @@
   --hover-fill: rgba(213, 243, 225, .075);
   --selected-fill: rgba(80, 105, 88, .76);
   --selected-edge: rgba(219, 246, 228, .3);
+  --segment-track: rgba(147, 177, 158, .13);
+  --segment-thumb: rgba(187, 226, 201, .13);
+  --segment-edge: rgba(234, 255, 242, .36);
   --tint-fill: rgba(89, 146, 108, .2);
   --equation-fill: #25362b;
   --correct-fill: #284331;
@@ -136,14 +142,21 @@ body { background: var(--bg); isolation: isolate; }
 .sidebar-note { font-size: 13px; margin-top: 24px; color: var(--muted); }
 .nav-link::before, .nav-link::after { content: none; }
 
-.mode-tabs { position: sticky; top: var(--sticky-top); z-index: 12; display: inline-flex; width: fit-content; max-width: 100%; gap: 3px; flex-wrap: nowrap; padding: 5px; border-radius: 999px; margin-bottom: 26px; }
+.mode-tabs.glass-surface { position: sticky; top: var(--sticky-top); z-index: 12; display: inline-flex; width: fit-content; max-width: 100%; min-height: 54px; gap: 3px; flex-wrap: nowrap; padding: 5px; border: 0; border-radius: 999px; margin-bottom: 26px; background: transparent; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; touch-action: pan-y pinch-zoom; user-select: none; -webkit-user-select: none; }
+.mode-tabs.glass-surface::before { inset: 8px 0; opacity: 1; background: linear-gradient(145deg, rgba(255, 255, 255, .07), transparent 60%), var(--segment-track); border: 1px solid var(--glass-edge); backdrop-filter: blur(var(--glass-blur)) saturate(130%); -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(130%); box-shadow: inset 0 1px 1px var(--glass-rim), inset 0 -1px 1px var(--glass-bottom); transition: none; }
+.mode-tabs.glass-surface::after { inset: 8px 0; }
 .mode-tabs button { position: relative; z-index: 1; min-height: 44px; padding: 10px 20px; border: 0; border-radius: 999px; background: transparent; color: var(--muted); font-size: 14px; white-space: nowrap; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; transition: color .18s, background .18s; }
 .mode-tabs button:hover { color: var(--ink); background: var(--hover-fill); }
 .mode-tabs button[aria-selected="true"] { background: var(--selected-fill); color: var(--green); font-weight: 600; box-shadow: inset 0 1px 0 var(--glass-rim), 0 3px 8px rgba(35, 54, 44, .07); }
 .mode-tabs.tabs-measured button[aria-selected="true"] { background: transparent; box-shadow: none; }
-.mode-tabs button::after { content: none; }
-.tab-highlight { position: absolute; left: 0; top: 0; z-index: 0; pointer-events: none; border-radius: 999px; background: var(--selected-fill); border: 1px solid var(--selected-edge); box-shadow: inset 0 1px 1px var(--glass-rim), 0 3px 8px rgba(35, 54, 44, .09); opacity: 0; transition: transform .36s var(--material-ease), width .36s var(--material-ease), height .36s var(--material-ease); }
+.mode-tabs button::after, .mode-tabs button[aria-selected="true"]::after { content: none; display: none; }
+.tab-highlight { position: absolute; left: 0; top: 0; z-index: 0; pointer-events: none; border-radius: 999px; background: linear-gradient(145deg, rgba(255, 255, 255, .16), transparent 38%, rgba(183, 217, 231, .08) 70%, rgba(255, 255, 255, .11)), var(--segment-thumb); border: 1px solid var(--segment-edge); backdrop-filter: blur(14px) saturate(150%); -webkit-backdrop-filter: blur(14px) saturate(150%); box-shadow: inset 0 1px 2px var(--glass-rim), inset 0 -1px 1px var(--glass-bottom), 0 2px 5px rgba(10, 29, 18, .12), 0 8px 16px rgba(10, 29, 18, .08); opacity: 0; transform-origin: center; transition: transform .32s var(--material-ease), width .32s var(--material-ease), height .32s var(--material-ease), box-shadow .2s; }
 .tabs-measured .tab-highlight { opacity: 1; }
+.mode-tabs.drag-enabled button[aria-selected="true"] { cursor: grab; }
+.mode-tabs.is-dragging, .mode-tabs.is-dragging button { cursor: grabbing; }
+.mode-tabs.is-dragging .tab-highlight { transition: none; box-shadow: inset 0 1px 2px var(--glass-rim), inset 0 -1px 1px var(--glass-bottom), 0 4px 8px rgba(10, 29, 18, .14), 0 10px 24px rgba(10, 29, 18, .14); }
+.mode-tabs.is-dragging button[aria-selected="true"] { color: var(--muted); }
+.mode-tabs.is-dragging button.is-preview { color: var(--green); font-weight: 600; }
 .summary-nav, .quantity-nav { padding: 6px; border-radius: 22px; gap: 5px; }
 .summary-nav button, .quantity-nav button { position: relative; border: 0; border-radius: 16px; background: transparent; color: var(--ink); box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
 .summary-nav button:hover, .quantity-nav button:hover { background: var(--hover-fill); transform: none; }
@@ -236,15 +249,21 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .formula-group > summary:focus-visible, .quantity-card > summary:focus-visible, .pitfall-card > summary:focus-visible, .detail-disclosure > summary:focus-visible, .quiz-review-item > summary:focus-visible { outline-color: var(--focus); }
 .quiz-choice > input:focus-visible + label { outline-color: var(--focus); }
 :root[data-transparency="reduced"] { --glass-fill: var(--paper); --glass-control: var(--paper); --content-fill: var(--paper); --group-fill: var(--bg); --selected-fill: var(--soft); }
+:root[data-transparency="reduced"] { --segment-track: var(--bg); --segment-thumb: var(--soft); }
 [data-transparency="reduced"] .glass-surface, [data-transparency="reduced"] dialog::backdrop { backdrop-filter: none; -webkit-backdrop-filter: none; }
 [data-transparency="reduced"] .glass-surface { background: var(--paper); border-color: var(--line); }
 [data-transparency="reduced"] .primary-button.glass-surface { background: var(--primary-fill); }
 [data-transparency="reduced"] .glass-surface::before, [data-transparency="reduced"] .interactive-surface::before, [data-transparency="reduced"] .cursor-aura { display: none; }
+[data-transparency="reduced"] .mode-tabs.glass-surface { background: transparent; }
+[data-transparency="reduced"] .mode-tabs.glass-surface::before { display: block; backdrop-filter: none; -webkit-backdrop-filter: none; }
+[data-transparency="reduced"] .tab-highlight { background: var(--soft); backdrop-filter: none; -webkit-backdrop-filter: none; }
 @supports not (backdrop-filter: blur(1px)) {
  @supports not (-webkit-backdrop-filter: blur(1px)) {
   :root, :root[data-theme="dark"] { --glass-fill: var(--paper); --glass-control: var(--paper); }
   .glass-surface { background: var(--paper); border-color: var(--line); }
   .primary-button.glass-surface { background: var(--primary-fill); }
+  .mode-tabs.glass-surface { background: transparent; }
+  .mode-tabs.glass-surface::before, .tab-highlight { background: var(--paper); }
  }
 }
 @media (prefers-contrast: more) {
@@ -253,23 +272,26 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .glass-surface { backdrop-filter: none; -webkit-backdrop-filter: none; }
   .sidebar.glass-surface { background: var(--glass-fill); }
   .glass-surface::before, .interactive-surface::before, .cursor-aura { display: none; }
+  .mode-tabs.glass-surface::before { display: block; background: var(--paper); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .tab-highlight { background: var(--soft); backdrop-filter: none; -webkit-backdrop-filter: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
   button:active:not(:disabled), .formula-card:hover { transform: none; }
+  .mode-tabs.is-dragging .tab-highlight { box-shadow: inset 0 1px 1px var(--glass-rim); }
 }
 @media (hover: none), (pointer: coarse) {
   .cursor-aura, .glass-surface::before, .interactive-surface::before { display: none; }
   .formula-card:hover { transform: none; }
   .browse-button, .formula-reference { min-height: 44px; }
+  .mode-tabs.glass-surface::before { display: block; }
 }
 @media (max-width: 800px) {
   :root { --glass-blur: 16px; --chrome-height: 60px; --sticky-top: 84px; }
   .topbar { padding: 0 16px; gap: 12px; border-radius: 22px; }
-  .mode-tabs { width: 100%; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-radius: 22px; gap: 2px; }
-  .mode-tabs button { padding: 10px 6px; font-size: 13px; border-radius: 17px; }
-  .tab-highlight { border-radius: 17px; }
+  .mode-tabs.glass-surface { width: 100%; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; }
+  .mode-tabs button { padding: 10px 6px; font-size: 13px; }
   .summary-nav, .quantity-nav { border-radius: 20px; }
   .summary-nav button, .quantity-nav button { border-radius: 14px; }
   .chapter-section, .summary-section { scroll-margin-top: 158px; }
@@ -286,7 +308,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .appearance-menu > summary { width: 36px; height: 36px; }
   .appearance-panel { top: 45px; }
   main { padding-top: 26px; }
-  .mode-tabs { padding: 4px; border-radius: 21px; }
+  .mode-tabs.glass-surface { padding: 5px; }
   .mode-tabs button { font-size: 12px; padding: 10px 2px; }
   .formula-group.content-surface { border-radius: 21px; }
   .group-content { padding: 10px; }
@@ -303,4 +325,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .ambient-light, .cursor-aura, .glass-surface::before, .glass-surface::after, .interactive-surface::before, .tab-highlight { display: none; }
   .mode-tabs button[aria-selected="true"], .nav-link.active, .quiz-choice > input:checked + label { outline: 2px solid Highlight; outline-offset: -3px; }
   .primary-button.glass-surface { background: ButtonFace; color: ButtonText; }
+  .mode-tabs.glass-surface { background: Canvas; border: 1px solid CanvasText; }
+  .mode-tabs.glass-surface::before, .mode-tabs.glass-surface::after { display: none; }
 }
