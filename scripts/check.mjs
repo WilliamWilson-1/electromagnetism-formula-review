@@ -3,8 +3,19 @@ import vm from 'node:vm';
 import path from 'node:path';
 import katex from 'katex';
 const sandbox={window:{}};
-for(const file of ['dist/data.js','dist/content.js','dist/summary.js','dist/learning.js','dist/quiz-data.js'])vm.runInNewContext(fs.readFileSync(file,'utf8'),sandbox,{filename:file});
-const {formulas,chapters,guide,summary,groups,learning,quiz}=sandbox.window.REVIEW_DATA;
+for(const file of ['dist/data.js','dist/content.js','dist/summary.js','dist/learning.js','dist/quiz-data.js','dist/course-update.js','dist/course-quiz.js'])vm.runInNewContext(fs.readFileSync(file,'utf8'),sandbox,{filename:file});
+const {formulas,chapters,guide,summary,groups,learning,quiz,course}=sandbox.window.REVIEW_DATA;
+if(course.newFormulaIds.length!==51||course.newChapterIds.length!==10)throw new Error('Incomplete 2026-10-17 course extension');
+const outline=fs.readFileSync('dist/review-outline.md','utf8');
+for(const id of course.newFormulaIds){
+  const f=formulas.find(f=>f.id===id);
+  if(!f?.source.includes('PDF 第')||!outline.includes('##### '+f.title))throw new Error('Missing source or outline entry: '+id);
+}
+for(const id of course.newChapterIds)for(const kind of Object.keys(quiz.kinds)){
+  if(quiz.questions.filter(q=>q.chapter===id&&q.kind===kind).length!==2)throw new Error('Incomplete new topic quiz coverage: '+id+'/'+kind);
+}
+const rest=outline.replace(/\$\$([\s\S]*?)\$\$/g,(_,math)=>{katex.renderToString(math,{throwOnError:true,strict:'ignore',displayMode:true});return '';});
+for(const [,math]of rest.matchAll(/\$([^$\n]+)\$/g))katex.renderToString(math,{throwOnError:true,strict:'ignore'});
 const seen=new Set();
 for(const f of formulas){
   if(seen.has(f.id))throw new Error(`Duplicate id: ${f.id}`);seen.add(f.id);
@@ -52,5 +63,5 @@ for(const q of quiz.questions){
   for(const id of q.refs)if(!seen.has(id))throw new Error(`Unknown quiz formula: ${q.id} → ${id}`);
 }
 for(const chapter of chapters)for(const kind of Object.keys(quiz.kinds))if(!quiz.questions.some(q=>q.chapter===chapter.id&&q.kind===kind))throw new Error(`Quiz coverage missing: ${chapter.id}/${kind}`);
-for(const file of ['app.js','quiz-engine.js','quiz-ui.js','materials.js','segments.js'])new vm.Script(fs.readFileSync('dist/'+file,'utf8'),{filename:file});
+for(const file of ['app.js','course-update.js','course-quiz.js','quiz-engine.js','quiz-ui.js','materials.js','segments.js'])new vm.Script(fs.readFileSync('dist/'+file,'utf8'),{filename:file});
 console.log(`PASS: ${formulas.length} formulas, ${groups.length} groups, ${chapters.length} chapters, ${quiz.questions.length} quiz questions; math, references, coverage and local assets verified.`);

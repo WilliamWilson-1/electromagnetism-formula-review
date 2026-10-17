@@ -18,7 +18,7 @@ w.matchMedia=()=>({matches:false,addEventListener(){}});
 w.HTMLElement.prototype.scrollIntoView=function(){};
 w.HTMLDialogElement.prototype.showModal=function(){this.setAttribute('open','');};
 w.HTMLDialogElement.prototype.close=function(){this.removeAttribute('open');this.dispatchEvent(new w.Event('close'));};
-for(const file of ['data.js','content.js','summary.js','learning.js','quiz-data.js','quiz-engine.js','quiz-ui.js','materials.js','segments.js','app.js'])w.eval(fs.readFileSync('dist/'+file,'utf8'));
+for(const file of ['data.js','content.js','summary.js','learning.js','quiz-data.js','course-update.js','course-quiz.js','quiz-engine.js','quiz-ui.js','materials.js','segments.js','app.js'])w.eval(fs.readFileSync('dist/'+file,'utf8'));
 const tabs=d.querySelector('.mode-tabs'),pill=d.querySelector('.tab-highlight'),buttons=[...tabs.querySelectorAll('[role="tab"]')];
 let layout={left:40,top:200,width:411,scale:1,widths:[112,96,104,80],positions:[5,120,219,326]},captured=null;
 tabs.getBoundingClientRect=()=>({left:layout.left,top:layout.top,width:layout.width*layout.scale,height:54*layout.scale});

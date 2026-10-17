@@ -34,7 +34,7 @@ const guideDOM=new JSDOM(html,{url:'https://example.test/#guide',runScripts:'out
 const gw=guideDOM.window,gd=gw.document;
 gw.matchMedia=()=>({matches:false,addEventListener(){}});
 gw.HTMLElement.prototype.scrollIntoView=function(){};
-for(const file of ['data.js','content.js','summary.js','learning.js','quiz-data.js','quiz-engine.js','quiz-ui.js','materials.js','segments.js','app.js'])gw.eval(fs.readFileSync('dist/'+file,'utf8'));
+for(const file of ['data.js','content.js','summary.js','learning.js','quiz-data.js','course-update.js','course-quiz.js','quiz-engine.js','quiz-ui.js','materials.js','segments.js','app.js'])gw.eval(fs.readFileSync('dist/'+file,'utf8'));
 assert.equal(gd.querySelectorAll('.steps li').length,6);
 const guideStyles=gd.createElement('style');gd.head.append(guideStyles);
 for(const [theme,reduced] of [['light',false],['dark',false],['dark',true]]){

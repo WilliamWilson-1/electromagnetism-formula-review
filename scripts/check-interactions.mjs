@@ -13,22 +13,23 @@ function load(hash='',coarse=false,reduced=false){
   w.HTMLElement.prototype.scrollIntoView=function(){this.dataset.scrolled='true';};
   w.HTMLDialogElement.prototype.showModal=function(){this.setAttribute('open','');};
   w.HTMLDialogElement.prototype.close=function(){this.removeAttribute('open');this.dispatchEvent(new w.Event('close'));};
-  for(const file of ['data.js','content.js','summary.js','learning.js','quiz-data.js','quiz-engine.js','quiz-ui.js','materials.js','segments.js','app.js'])w.eval(fs.readFileSync('dist/'+file,'utf8'));
+  for(const file of ['data.js','content.js','summary.js','learning.js','quiz-data.js','course-update.js','course-quiz.js','quiz-engine.js','quiz-ui.js','materials.js','segments.js','app.js'])w.eval(fs.readFileSync('dist/'+file,'utf8'));
   return dom;
 }
 const dom=load(),w=dom.window,d=w.document,$=id=>d.getElementById(id);
 const settle=()=>new Promise(resolve=>w.setTimeout(resolve,25));
 const displayedCards=()=>[...d.querySelectorAll('.formula-card')];
-assert.equal(displayedCards().length,83,'All formulas load without a startup exception');
-assert.equal(d.querySelectorAll('.quantity-card').length,12);
-assert.equal(d.querySelectorAll('.pitfall-card').length,16);
+const expected=w.REVIEW_DATA;
+assert.equal(displayedCards().length,expected.formulas.length,'All formulas load without a startup exception');
+assert.equal(d.querySelectorAll('.quantity-card').length,expected.summary.targets.length);
+assert.equal(d.querySelectorAll('.pitfall-card').length,expected.summary.pitfalls.length);
 assert.equal(d.querySelectorAll('.katex-error').length,0);
-assert.equal(d.querySelectorAll('.formula-group').length,34);
+assert.equal(d.querySelectorAll('.formula-group').length,expected.groups.length);
 assert.equal(d.querySelectorAll('.formula-group[open]').length,1,'Initial index is compact');
 $('collapse-groups').click();await settle();
 assert.equal(d.querySelectorAll('.formula-group[open]').length,0);
 $('expand-groups').click();await settle();
-assert.equal(d.querySelectorAll('.formula-group[open]').length,34);
+assert.equal(d.querySelectorAll('.formula-group[open]').length,expected.groups.length);
 $('collapse-groups').click();await settle();
 d.querySelector('[data-group="capacitor-models"]').open=true;await settle();
 assert.equal(d.querySelectorAll('[data-group="capacitor-models"] .formula-card').length,3);
@@ -88,7 +89,7 @@ $('summary-tab').click();$('formula-tab').click();
 assert.equal($('search').value,'hall-voltage','Switching views preserves search');
 assert.equal(displayedCards().length,1);
 $('reset').click();
-assert.equal(displayedCards().length,83);
+assert.equal(displayedCards().length,expected.formulas.length);
 await settle();
 assert.equal(d.querySelector('[data-group="capacitor-models"]').open,true,'Manual expansion persists after clearing search');
 assert.equal(d.querySelector('[data-group="straight-wire-models"]').open,false,'Other manually collapsed groups stay compact');
@@ -100,7 +101,7 @@ assert.ok(displayedCards().length>0);
 assert.ok(displayedCards().every(card=>card.querySelector('.card-type').textContent==='受力运动'));
 $('search').value='no-match';$('search').dispatchEvent(new w.Event('input'));
 assert.equal($('empty-state').hidden,false);
-$('empty-reset').click();assert.equal(displayedCards().length,83);
+$('empty-reset').click();assert.equal(displayedCards().length,expected.formulas.length);
 
 d.dispatchEvent(new w.MouseEvent('pointermove',{clientX:50,clientY:50,bubbles:true}));await settle();
 assert.equal(d.body.classList.contains('pointer-active'),true);
@@ -114,4 +115,4 @@ for(const [hash,coarse,reduced] of [['#summary',true,false],['#guide',false,true
   assert.equal(doc.body.classList.contains('pointer-active'),false,'Coarse pointer or reduced motion keeps static glass');
   direct.window.close();
 }
-console.log('PASS: compact model groups, bulk expand/collapse, preserved group state, all 83 enriched formula details and related links, routing, keyboard tabs, search/filter/reset and pointer preferences (DOM simulation; no visual layout verification).');
+console.log('PASS: compact model groups, bulk expand/collapse, preserved group state, all enriched formula details and related links, routing, keyboard tabs, search/filter/reset and pointer preferences (DOM simulation; no visual layout verification).');

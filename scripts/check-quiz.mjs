@@ -5,7 +5,7 @@ import {JSDOM} from 'jsdom';
 import katex from 'katex';
 
 const sandbox={window:{}};
-for(const file of ['data.js','content.js','quiz-data.js','quiz-engine.js'])vm.runInNewContext(fs.readFileSync('dist/'+file,'utf8'),sandbox);
+for(const file of ['data.js','content.js','summary.js','learning.js','quiz-data.js','course-update.js','course-quiz.js','quiz-engine.js'])vm.runInNewContext(fs.readFileSync('dist/'+file,'utf8'),sandbox);
 const questions=sandbox.window.REVIEW_DATA.quiz.questions,engine=sandbox.window.REVIEW_QUIZ_ENGINE;
 const rng=seed=>()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
 for(let seed=1;seed<=30;seed++){
@@ -16,7 +16,7 @@ for(let seed=1;seed<=30;seed++){
   const ten=engine.draw(questions,{count:10},rng(seed));
   assert.equal(new Set(ten.map(q=>q.chapter)).size,10);
 }
-assert.equal(engine.draw(questions,{count:100}).length,66);
+assert.equal(engine.draw(questions,{count:1000}).length,questions.length);
 const scoped=engine.draw(questions,{chapter:'capacitors',kind:'formula',count:15},rng(4));
 assert.equal(scoped.length,2);assert.ok(scoped.every(q=>q.chapter==='capacitors'&&q.kind==='formula'));
 assert.throws(()=>engine.draw(questions,{count:0}));
@@ -30,7 +30,7 @@ for(const entry of round){
   assert.equal(engine.choose(entry,(entry.answer+1)%4),false,'Submitted answer locks');
   engine.submit(entry);
 }
-assert.equal(engine.grade(round).correct,66,'Repeated submission never adds points');
+assert.equal(engine.grade(round).correct,questions.length,'Repeated submission never adds points');
 assert.equal(engine.grade(round).percent,100);
 
 // This simulates the real page event handlers; it does not verify browser visuals.
@@ -41,7 +41,7 @@ w.matchMedia=()=>({matches:false,addEventListener(){}});
 w.HTMLElement.prototype.scrollIntoView=function(){};
 w.HTMLDialogElement.prototype.showModal=function(){this.setAttribute('open','');};
 w.HTMLDialogElement.prototype.close=function(){this.removeAttribute('open');this.dispatchEvent(new w.Event('close'));};
-for(const file of ['data.js','content.js','summary.js','learning.js','quiz-data.js','quiz-engine.js','quiz-ui.js','materials.js','segments.js','app.js'])w.eval(fs.readFileSync('dist/'+file,'utf8'));
+for(const file of ['data.js','content.js','summary.js','learning.js','quiz-data.js','course-update.js','course-quiz.js','quiz-engine.js','quiz-ui.js','materials.js','segments.js','app.js'])w.eval(fs.readFileSync('dist/'+file,'utf8'));
 const change=(id,value)=>{$(id).value=value;$(id).dispatchEvent(new w.Event('change',{bubbles:true}));};
 const submit=id=>$(id).dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));
 const question=()=>w.REVIEW_DATA.quiz.questions.find(q=>q.id===d.querySelector('.quiz-question').dataset.questionId);
@@ -96,4 +96,4 @@ for(let i=0;i<2;i++){assert.equal(question().chapter,'capacitors');assert.equal(
 assert.equal(d.querySelector('.quiz-score').dataset.total,'2');
 assert.equal(d.querySelector('.quiz-score').dataset.correct,'2');
 dom.window.close();
-console.log('PASS: 66-question bank, balanced randomized draws, chapter/type scopes, shuffled answers, submission lock, scoring, formula links, retained rounds, full review and wrong-question retry (DOM simulation).');
+console.log('PASS: complete question bank, balanced randomized draws, chapter/type scopes, shuffled answers, submission lock, scoring, formula links, retained rounds, full review and wrong-question retry (DOM simulation).');
