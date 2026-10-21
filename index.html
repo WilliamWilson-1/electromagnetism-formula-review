@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="vendor/katex/katex.min.css">
   <link rel="stylesheet" href="styles.css?v=glass-7">
   <link rel="stylesheet" href="materials.css?v=glass-6">
+  <link rel="stylesheet" href="explanations.css?v=visual-20261021">
   <script defer src="vendor/katex/katex.min.js"></script>
   <script defer src="data.js"></script>
   <script defer src="content.js"></script>
@@ -18,11 +19,13 @@
   <script defer src="quiz-data.js"></script>
   <script defer src="course-update.js?v=course-20261017"></script>
   <script defer src="course-quiz.js?v=course-20261017"></script>
+  <script defer src="quantity-details.js?v=visual-20261021"></script>
+  <script defer src="model-diagrams.js?v=visual-20261021"></script>
   <script defer src="quiz-engine.js"></script>
   <script defer src="quiz-ui.js"></script>
   <script defer src="materials.js?v=glass-6"></script>
   <script defer src="segments.js?v=glass-6"></script>
-  <script defer src="app.js?v=course-20261017"></script>
+  <script defer src="app.js?v=visual-20261021"></script>
 </head>
 <body>
   <div class="ambient-light" aria-hidden="true"></div>
@@ -41,10 +44,10 @@
     <aside class="sidebar" aria-label="章节导航">
       <div class="sidebar-heading">复习目录 <span class="mono">21 TOPICS</span></div>
       <nav id="chapter-nav"></nav>
-      <div class="sidebar-note"><strong>复习范围</strong><p>静电场 · 导体与介质<br>电磁感应 · 电磁波与辐射</p><span>依据五份课件 · 更新于 2026-10-17</span></div>
+      <div class="sidebar-note"><strong>复习范围</strong><p>静电场 · 导体与介质<br>电磁感应 · 电磁波与辐射</p><span>五份课件 · 已补充物理量详解与图示</span></div>
     </aside>
     <main id="main" tabindex="-1">
-      <div class="page-heading"><div><span class="eyebrow">ELECTROMAGNETISM</span><h1 id="page-title">电磁学公式交互式复习</h1><p id="page-description">按章节和模型找公式，点击查看推导、物理量求法与适用条件。</p></div><div class="formula-total"><strong id="total-number">134</strong><span>条课程公式</span></div></div>
+      <div class="page-heading"><div><span class="eyebrow">ELECTROMAGNETISM</span><h1 id="page-title">电磁学公式交互式复习</h1><p id="page-description">按章节和模型找公式，结合图示读懂物理量、推导与适用条件。</p></div><div class="formula-total"><strong id="total-number">134</strong><span>条课程公式</span></div></div>
       <div class="mode-tabs" role="tablist" aria-label="复习视图"><span class="tab-highlight" aria-hidden="true"></span><button id="formula-tab" role="tab" aria-selected="true" aria-controls="formula-view">公式索引</button><button id="guide-tab" role="tab" aria-selected="false" aria-controls="guide-view" tabindex="-1">做题思路</button><button id="summary-tab" role="tab" aria-selected="false" aria-controls="summary-view" tabindex="-1">总结辨析</button><button id="quiz-tab" role="tab" aria-selected="false" aria-controls="quiz-view" tabindex="-1">小测试</button></div>
       <section id="formula-view" role="tabpanel" aria-labelledby="formula-tab">
         <div class="controls">
@@ -67,9 +70,10 @@
     <div class="detail-top"><span id="detail-chapter" class="eyebrow"></span><button id="close-detail" class="icon-button" aria-label="关闭公式详情">×</button></div>
     <p id="detail-type" class="detail-type"></p><h2 id="detail-title"></h2><div id="detail-formula" class="detail-formula math-scroll"></div>
     <div class="detail-section"><h3>适用条件</h3><p id="detail-condition"></p></div>
+    <section id="detail-model" class="model-section" hidden></section>
+    <details id="detail-variables-panel" class="detail-disclosure quantity-explanation" open><summary>逐个认识物理量<span class="expand-mark" aria-hidden="true">+</span></summary><div class="detail-disclosure-body"><p class="quantity-intro">符号按当前公式解释；同一字母在其他模型中可能表示不同量。</p><dl id="detail-variables"></dl><div id="detail-notation"></div></div></details>
     <details id="detail-derivation-panel" class="detail-disclosure" open><summary>推导过程与关系说明<span class="expand-mark" aria-hidden="true">+</span></summary><div class="detail-disclosure-body"><p id="detail-learning-kind" class="learning-kind"></p><ol id="detail-derivation" class="derivation-steps"></ol></div></details>
     <details id="detail-solves-panel" class="detail-disclosure" open><summary>用它求哪些物理量？<span class="expand-mark" aria-hidden="true">+</span></summary><div id="detail-solves" class="detail-disclosure-body solve-list"></div></details>
-    <details id="detail-variables-panel" class="detail-disclosure"><summary>变量含义<span class="expand-mark" aria-hidden="true">+</span></summary><div class="detail-disclosure-body"><dl id="detail-variables"></dl></div></details>
     <div class="detail-section hint-section"><h3>解题提示</h3><p id="detail-hint"></p></div>
     <div class="detail-section"><h3>关联公式</h3><div id="detail-related" class="formula-references"></div></div>
     <p id="detail-source" class="detail-source"></p>
