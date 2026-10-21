@@ -1,0 +1,40 @@
+/* Reading surfaces for schematic figures and context-specific quantities. */
+.model-section { margin-top: 22px; }
+.model-figure { margin: 0; border: 1px solid var(--line); border-radius: 20px; background: var(--content-fill); overflow: hidden; }
+.model-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px 4px; }
+.model-heading h3 { margin: 0; color: var(--ink); font-size: 15px; line-height: 1.6; font-weight: 600; }
+.diagram-download { display: inline-flex; align-items: center; min-height: 44px; flex: none; color: var(--green); font-size: 12px; text-decoration: none; }
+.diagram-download:hover { text-decoration: underline; text-underline-offset: 4px; }
+.model-canvas { overflow-x: auto; overscroll-behavior-x: contain; background: var(--equation-fill); margin: 8px 12px 0; border-radius: 14px; }
+.model-canvas .model-svg { display: block; width: 100%; min-width: 420px; height: auto; }
+.model-canvas:focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
+.model-figure figcaption { padding: 14px 18px 18px; color: var(--muted); font-size: 13px; line-height: 1.8; }
+.model-figure figcaption p { margin: 0 0 10px; }
+.model-figure figcaption ul { margin: 0 0 10px; padding-left: 18px; }
+.diagram-note { display: block; font-size: 12px; color: var(--muted); }
+.quantity-intro { margin: 0 0 10px; color: var(--muted); font-size: 13px; line-height: 1.8; }
+.quantity-explanation .variable-row { display: grid; grid-template-columns: minmax(84px, 110px) minmax(0, 1fr); gap: 18px; padding: 20px 0; align-items: start; }
+.quantity-explanation .variable-row dt { min-width: 0; overflow-x: auto; padding: 2px 0 6px; color: var(--green); font-size: 14px; }
+.quantity-unit { display: block; margin-top: 9px; color: var(--muted); font: 12px/1.65 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif; overflow-wrap: anywhere; }
+.quantity-explanation .variable-row dd { margin: 0; min-width: 0; color: var(--ink); }
+.quantity-name { display: block; font-size: 15px; color: var(--ink); font-weight: 600; }
+.quantity-explanation .variable-row dd p { margin: 6px 0 0; color: var(--muted); font-size: 13px; line-height: 1.85; overflow-wrap: anywhere; }
+.explanation-label { color: var(--green); font-weight: 550; margin-right: 8px; }
+.notation-guide { border-top: 1px solid var(--line); padding-top: 14px; }
+.notation-guide h4 { margin: 0 0 12px; color: var(--ink); font-size: 14px; font-weight: 600; }
+.notation-guide dl { margin: 0; display: grid; gap: 12px; }
+.notation-guide dt { font-size: 13px; color: var(--green); }
+.notation-guide dd { margin: 4px 0 0; color: var(--muted); font-size: 13px; line-height: 1.8; }
+@media (max-width: 480px) {
+  .model-heading { padding: 12px 14px 2px; gap: 8px; }
+  .model-heading h3 { font-size: 14px; }
+  .model-canvas { margin: 6px 8px 0; }
+  .model-figure figcaption { padding: 12px 14px 16px; }
+  .quantity-explanation .variable-row { grid-template-columns: minmax(0, 1fr); gap: 7px; padding: 18px 0; }
+  .quantity-explanation .variable-row dt { display: flex; align-items: baseline; gap: 12px; padding: 0 0 4px; }
+  .quantity-unit { display: inline; margin-top: 0; flex: none; }
+}
+@media (forced-colors: active) {
+  .model-canvas, .model-figure { background: Canvas; color: CanvasText; border-color: CanvasText; }
+  .model-svg { --ink: CanvasText; --green: CanvasText; --muted: CanvasText; --soft: Canvas; --equation-fill: Canvas; }
+}

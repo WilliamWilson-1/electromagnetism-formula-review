@@ -31,7 +31,7 @@
     const card=f=>{
       const c=chapters.find(c=>c.id===f.chapter), lesson=learning[f.id];
       const badge=lesson.kind.includes('基本定律')?'定律说明':lesson.kind.includes('定义')?'定义说明':`${lesson.steps.length} 步展开`;
-      return `<button class="formula-card" data-formula="${f.id}" aria-label="查看${escape(f.title)}：推导、物理量求法、变量与条件"><div class="card-top"><span class="card-index">${c.number}.${String(formulas.filter(x=>x.chapter===c.id).indexOf(f)+1).padStart(2,'0')}</span><span class="card-type">${f.type}</span></div><h3>${escape(f.title)}</h3><div class="card-formula">${math(f.latex)}</div><p class="card-scope">${escape(f.condition)}</p><div class="card-solves"><span>可求</span>${lesson.solves.map(s=>escape(s[0])).join(' · ')}</div><div class="card-bottom"><span class="card-open">${badge} · 求量 · 变量</span><span class="card-mark" aria-hidden="true">↗</span></div></button>`;
+      return `<button class="formula-card" data-formula="${f.id}" aria-label="查看${escape(f.title)}：推导、物理量求法、变量与条件"><div class="card-top"><span class="card-index">${c.number}.${String(formulas.filter(x=>x.chapter===c.id).indexOf(f)+1).padStart(2,'0')}</span><span class="card-type">${f.type}</span></div><h3>${escape(f.title)}</h3><div class="card-formula">${math(f.latex)}</div><p class="card-scope">${escape(f.condition)}</p><div class="card-solves"><span>可求</span>${lesson.solves.map(s=>escape(s[0])).join(' · ')}</div><div class="card-bottom"><span class="card-open">${f.diagramId?'含图示 · ':''}${badge} · 变量</span><span class="card-mark" aria-hidden="true">↗</span></div></button>`;
     };
     $('formula-list').innerHTML=chapters.map(c=>{
       const rows=selected.filter(f=>f.chapter===c.id);if(!rows.length)return '';
@@ -57,21 +57,25 @@
     const c=chapters.find(c=>c.id===f.chapter);
     $('detail-chapter').textContent=`${c.number} / ${c.title}`;$('detail-type').textContent=f.type;$('detail-title').textContent=f.title;
     $('detail-formula').innerHTML=math(f.latex);
-    $('detail-variables').innerHTML=f.variables.map(([symbol,meaning])=>`<div class="variable-row"><dt>${math(symbol,false)}</dt><dd>${prose(meaning)}</dd></div>`).join('');
+    $('detail-variables').innerHTML=f.variableDetails.map(v=>`<div class="variable-row" data-quantity="${escape(v.key)}"><dt>${math(v.symbol,false)}<span class="quantity-unit">${escape(v.unit)}</span></dt><dd><strong class="quantity-name">${escape(v.name)}</strong><p>${prose(v.meaning)}</p><p><span class="explanation-label">方向与约定</span>${prose(v.convention)}</p><p><span class="explanation-label">代入前看</span>${prose(v.reading)}</p></dd></div>`).join('');
+    $('detail-notation').innerHTML=f.notation.length?`<div class="notation-guide"><h4>公式中的运算符号</h4><dl>${f.notation.map(n=>`<div><dt>${escape(n.title)}</dt><dd>${escape(n.description)}</dd></div>`).join('')}</dl></div>`:'';
+    const diagram=window.REVIEW_DIAGRAMS.get(f.id);
+    $('detail-model').hidden=!diagram;
+    $('detail-model').innerHTML=diagram?`<figure class="model-figure"><div class="model-heading"><h3>${escape(diagram.title)}</h3><a class="diagram-download" href="diagrams/${f.id}.svg" download="${f.id}.svg">下载图示 ↗</a></div><div class="model-canvas" tabindex="0" role="region" aria-label="${escape(diagram.title)}，窄屏可横向滚动">${diagram.svg}</div><figcaption><p>${escape(diagram.caption)}</p><ul>${diagram.legend.map(text=>`<li>${escape(text)}</li>`).join('')}</ul><span class="diagram-note">模型示意，非课件原图；尺寸不按比例。窄屏可左右滑动。</span></figcaption></figure>`:'';
     $('detail-condition').innerHTML=prose(f.condition);$('detail-hint').innerHTML=prose(f.hint);$('detail-source').textContent=`${f.source||`原公式依据复习提纲 · ${c.source} ${c.section}`}。推导与反解由课程关系整理。`;
     const lesson=learning[f.id];
     $('detail-learning-kind').textContent=lesson.kind;
     $('detail-derivation').innerHTML=lesson.steps.map(([text,latex],i)=>`<li><span class="derivation-number">0${i+1}</span><div><p>${prose(text)}</p>${latex?`<div class="derivation-equation math-scroll">${math(latex)}</div>`:''}</div></li>`).join('');
     $('detail-solves').innerHTML=lesson.solves.map(([quantity,latex,note])=>`<article class="solve-card"><h4>${escape(quantity)}</h4><div class="solve-equation math-scroll">${math(latex)}</div><p>${prose(note)}</p></article>`).join('');
     $('detail-related').innerHTML=lesson.related.map(id=>`<button class="formula-reference" data-formula="${id}">${escape(formulas.find(f=>f.id===id).title)} ↗</button>`).join('');
-    $('detail-derivation-panel').open=true;$('detail-solves-panel').open=true;$('detail-variables-panel').open=false;
+    $('detail-derivation-panel').open=true;$('detail-solves-panel').open=true;$('detail-variables-panel').open=true;
     if(!$('formula-dialog').open)$('formula-dialog').showModal();$('formula-dialog').scrollTop=0;document.body.style.overflow='hidden';
     syncGlass();
   }
   function reset(){state.chapter='all';state.query='';state.type='全部类型';$('search').value='';$('type-filter').value='全部类型';history.replaceState(null,'','#all');render();}
   function updateHeading(){
     const chapter=chapters.find(c=>c.id===state.chapter);
-    const headings={formulas:[chapter?chapter.title:'电磁学公式交互式复习',chapter?chapter.description:'按章节和模型找公式，点击查看推导、物理量求法与适用条件。'],guide:['做题思路','从对称性、边界条件与守恒关系开始，先选方法，再代公式。'],summary:['总结与易错辨析','同一个物理量的不同求法，串联现有公式与适用条件。'],quiz:['随机小测试','抽几道选择题，考察公式、知识点与题目解法。']};
+    const headings={formulas:[chapter?chapter.title:'电磁学公式交互式复习',chapter?chapter.description:'按章节和模型找公式，结合图示读懂物理量、推导与适用条件。'],guide:['做题思路','从对称性、边界条件与守恒关系开始，先选方法，再代公式。'],summary:['总结与易错辨析','同一个物理量的不同求法，串联现有公式与适用条件。'],quiz:['随机小测试','抽几道选择题，考察公式、知识点与题目解法。']};
     [$('page-title').textContent,$('page-description').textContent]=headings[state.mode];
   }
   function setMode(mode,updateHash=false){

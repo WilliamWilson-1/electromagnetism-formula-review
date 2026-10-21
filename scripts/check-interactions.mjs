@@ -13,7 +13,7 @@ function load(hash='',coarse=false,reduced=false){
   w.HTMLElement.prototype.scrollIntoView=function(){this.dataset.scrolled='true';};
   w.HTMLDialogElement.prototype.showModal=function(){this.setAttribute('open','');};
   w.HTMLDialogElement.prototype.close=function(){this.removeAttribute('open');this.dispatchEvent(new w.Event('close'));};
-  for(const file of ['data.js','content.js','summary.js','learning.js','quiz-data.js','course-update.js','course-quiz.js','quiz-engine.js','quiz-ui.js','materials.js','segments.js','app.js'])w.eval(fs.readFileSync('dist/'+file,'utf8'));
+  for(const file of ['data.js','content.js','summary.js','learning.js','quiz-data.js','course-update.js','course-quiz.js','quantity-details.js','model-diagrams.js','quiz-engine.js','quiz-ui.js','materials.js','segments.js','app.js'])w.eval(fs.readFileSync('dist/'+file,'utf8'));
   return dom;
 }
 const dom=load(),w=dom.window,d=w.document,$=id=>d.getElementById(id);
@@ -40,6 +40,13 @@ assert.equal(d.querySelectorAll('[data-group="round-current-models"] .formula-ca
 for(const card of displayedCards()){
   card.click();
   const lesson=w.REVIEW_DATA.learning[card.dataset.formula];
+  const current=w.REVIEW_DATA.formulas.find(f=>f.id===card.dataset.formula);
+  assert.equal($('detail-variables-panel').open,true);
+  assert.equal($('detail-variables').children.length,current.variableDetails.length);
+  assert.equal(d.querySelectorAll('#detail-variables .quantity-name').length,current.variableDetails.length);
+  assert.equal($('detail-model').hidden,!current.diagramId);
+  assert.equal($('detail-model').querySelectorAll('svg').length,current.diagramId?1:0);
+  if(current.diagramId)assert.equal($('detail-model').querySelector('a[download]').getAttribute('href'),'diagrams/'+current.id+'.svg');
   assert.equal($('detail-derivation').children.length,lesson.steps.length);
   assert.equal($('detail-solves').children.length,lesson.solves.length);
   assert.ok($('detail-learning-kind').textContent.length>0);

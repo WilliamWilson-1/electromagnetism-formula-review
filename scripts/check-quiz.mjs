@@ -5,7 +5,7 @@ import {JSDOM} from 'jsdom';
 import katex from 'katex';
 
 const sandbox={window:{}};
-for(const file of ['data.js','content.js','summary.js','learning.js','quiz-data.js','course-update.js','course-quiz.js','quiz-engine.js'])vm.runInNewContext(fs.readFileSync('dist/'+file,'utf8'),sandbox);
+for(const file of ['data.js','content.js','summary.js','learning.js','quiz-data.js','course-update.js','course-quiz.js','quantity-details.js','model-diagrams.js','quiz-engine.js'])vm.runInNewContext(fs.readFileSync('dist/'+file,'utf8'),sandbox);
 const questions=sandbox.window.REVIEW_DATA.quiz.questions,engine=sandbox.window.REVIEW_QUIZ_ENGINE;
 const rng=seed=>()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
 for(let seed=1;seed<=30;seed++){
@@ -41,7 +41,7 @@ w.matchMedia=()=>({matches:false,addEventListener(){}});
 w.HTMLElement.prototype.scrollIntoView=function(){};
 w.HTMLDialogElement.prototype.showModal=function(){this.setAttribute('open','');};
 w.HTMLDialogElement.prototype.close=function(){this.removeAttribute('open');this.dispatchEvent(new w.Event('close'));};
-for(const file of ['data.js','content.js','summary.js','learning.js','quiz-data.js','course-update.js','course-quiz.js','quiz-engine.js','quiz-ui.js','materials.js','segments.js','app.js'])w.eval(fs.readFileSync('dist/'+file,'utf8'));
+for(const file of ['data.js','content.js','summary.js','learning.js','quiz-data.js','course-update.js','course-quiz.js','quantity-details.js','model-diagrams.js','quiz-engine.js','quiz-ui.js','materials.js','segments.js','app.js'])w.eval(fs.readFileSync('dist/'+file,'utf8'));
 const change=(id,value)=>{$(id).value=value;$(id).dispatchEvent(new w.Event('change',{bubbles:true}));};
 const submit=id=>$(id).dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));
 const question=()=>w.REVIEW_DATA.quiz.questions.find(q=>q.id===d.querySelector('.quiz-question').dataset.questionId);
